@@ -1,0 +1,89 @@
+[
+    {
+        "name": "searchData",
+        "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+                "raw": "http://localhost:5000/api/sensus/search?query=china",
+                "protocol": "http",
+                "host": [
+                    "localhost"
+                ],
+                "port": "5000",
+                "path": [
+                    "api",
+                    "sensus",
+                    "search"
+                ],
+                "query": [
+                    {
+                        "key": "query",
+                        "value": "china"
+                    }
+                ]
+            }
+        },
+        "response": []
+    },
+    {
+        "name": "Register",
+        "request": {
+            "method": "POST",
+            "header": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+                "raw": "http://localhost:5000/api/auth/register",
+                "protocol": "http",
+                "host": [
+                    "localhost"
+                ],
+                "port": "5000",
+                "path": [
+                    "api",
+                    "auth",
+                    "register"
+                ]
+            }
+        },
+        "response": []
+    },
+    {
+        "name": "Login",
+        "request": {
+            "method": "POST",
+            "header": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "body": {
+                "mode": "raw",
+                "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+                "raw": "http://localhost:5000/api/auth/login",
+                "protocol": "http",
+                "host": [
+                    "localhost"
+                ],
+                "port": "5000",
+                "path": [
+                    "api",
+                    "auth",
+                    "login"
+                ]
+            }
+        },
+        "response": []
+    }
+]
