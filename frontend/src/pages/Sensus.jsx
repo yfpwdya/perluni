@@ -3,6 +3,7 @@ import { FiSearch, FiArrowRight, FiUsers, FiTarget, FiAward, FiHeart, FiUser } f
 import { MdMenuBook } from "react-icons/md";
 import { FaUserGraduate, FaUniversity, FaChartBar, FaBook, FaBullhorn, FaMapMarkedAlt } from "react-icons/fa";
 import ProfileModal from "../components/ProfileModal";
+import { sensusAPI } from "../services/api";
 
 const Sensus = () => {
     const [search, setSearch] = useState("");
@@ -29,16 +30,9 @@ const Sensus = () => {
     const performSearch = async (query, cat) => {
         setIsLoading(true);
         try {
-            // Construct API URL with query and category
-            let url = `http://localhost:5000/api/sensus/search?query=${query}`;
-            if (cat && cat !== 'all') {
-                url += `&category=${cat}`;
-            }
-
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.success) {
-                setSearchResults(data.data);
+            const response = await sensusAPI.search(query, cat);
+            if (response.data.success) {
+                setSearchResults(response.data.data);
                 setShowResults(true);
             }
         } catch (error) {

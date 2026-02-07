@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authAPI } from '../services/api';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiUser, FiCheckCircle } from 'react-icons/fi';
 
 const Register = () => {
@@ -36,23 +37,11 @@ const Register = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password
-                })
+            await authAPI.register({
+                name: formData.name,
+                email: formData.email,
+                password: formData.password
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Registrasi gagal');
-            }
 
             setSuccess(true);
 
@@ -62,7 +51,7 @@ const Register = () => {
             }, 2000);
 
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan saat registrasi');
+            setError(err.response?.data?.message || err.message || 'Terjadi kesalahan saat registrasi');
         } finally {
             setLoading(false);
         }

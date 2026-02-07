@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { authAPI } from '../services/api';
 import { FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi';
 
 const VerifyEmail = () => {
@@ -10,22 +11,12 @@ const VerifyEmail = () => {
     useEffect(() => {
         const verify = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/auth/verify-email/${token}`, {
-                    method: 'POST'
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    setStatus('success');
-                    setMessage('Email berhasil diverifikasi! Anda sekarang dapat login.');
-                } else {
-                    setStatus('error');
-                    setMessage(data.message || 'Verifikasi gagal. Link mungkin sudah kedaluwarsa atau tidak valid.');
-                }
+                await authAPI.verifyEmail(token);
+                setStatus('success');
+                setMessage('Email berhasil diverifikasi! Anda sekarang dapat login.');
             } catch (error) {
                 setStatus('error');
-                setMessage('Terjadi kesalahan koneksi. Silakan coba lagi.');
+                setMessage(error.response?.data?.message || 'Verifikasi gagal. Link mungkin sudah kedaluwarsa atau tidak valid.');
             }
         };
 

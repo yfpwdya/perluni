@@ -42,7 +42,8 @@ export default api;
 export const authAPI = {
     register: (data) => api.post('/auth/register', data),
     login: (data) => api.post('/auth/login', data),
-    getMe: () => api.get('/auth/me')
+    getMe: () => api.get('/auth/me'),
+    verifyEmail: (token) => api.post(`/auth/verify-email/${token}`)
 };
 
 // Articles API
@@ -52,4 +53,15 @@ export const articlesAPI = {
     create: (data) => api.post('/articles', data),
     update: (id, data) => api.put(`/articles/${id}`, data),
     delete: (id) => api.delete(`/articles/${id}`)
+};
+
+// Sensus API
+export const sensusAPI = {
+    search: (query, category) => {
+        let url = `/sensus/search?query=${query}`;
+        if (category && category !== 'all') {
+            url += `&category=${category}`;
+        }
+        return api.get(url);
+    }
 };
