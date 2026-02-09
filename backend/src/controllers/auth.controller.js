@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
-// const sendEmail = require('../utils/sendEmail'); // Disabled for now
+const sendEmail = require('../utils/sendEmail');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -28,32 +28,52 @@ const register = async (req, res) => {
             });
         }
 
-        // New user - AUTO VERIFIED (Bypassing Email Verification)
+        // Create user
+        const verificationToken = crypto.randomBytes(20).toString('hex');
+
         user = await User.create({
             name,
             email,
             password,
-            isVerified: true // Auto-verify
+            verificationToken: crypto.createHash('sha256').update(verificationToken).digest('hex'),
+            verificationTokenExpire: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
         });
 
-        console.log('New user created (Auto-Verified):', user._id);
+        // Create verification URL
+        // const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/verify-email/${verificationToken}`; // For backend-only verification
+        // Usually, we send a link to the FRONTEND page which then calls the API
+        const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${verificationToken}`;
 
-        // Generate token for immediate login (optional, but returning token allows auto-login if frontend supports it)
-        const token = generateToken(user._id);
+        const message = `
+            <h1>Email Verification</h1>
+            <p>Please verify your email address by clicking the link below:</p>
+            <a href="${verificationUrl}" clicktracking=off>${verificationUrl}</a>
+        `;
 
-        res.status(201).json({
-            success: true,
-            message: 'Registration successful. Account is active.',
-            data: {
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role
-                },
-                token
-            }
-        });
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'Email Verification - Perluni',
+                message: `Please verify your email: ${verificationUrl}`,
+                html: message
+            });
+
+            res.status(201).json({
+                success: true,
+                message: `Registration successful. Please check your email (${email}) to verify your account.`
+            });
+        } catch (error) {
+            console.error('Email send error:', error);
+            user.verificationToken = undefined;
+            user.verificationTokenExpire = undefined;
+            await user.save({ validateBeforeSave: false });
+
+            return res.status(500).json({
+                success: false,
+                message: 'Email could not be sent',
+                error: error.message
+            });
+        }
 
     } catch (error) {
         console.error('Register error:', error);
@@ -65,15 +85,18 @@ const register = async (req, res) => {
     }
 };
 
-// @desc    Verify email (Unused in bypass mode but kept for future)
+// @desc    Verify email
 // @route   POST /api/auth/verify-email/:token
 const verifyEmail = async (req, res) => {
-    // ... same logic but currently not needed for new users ...
     try {
-        const verificationToken = req.params.token;
+        const verificationToken = crypto
+            .createHash('sha256')
+            .update(req.params.token)
+            .digest('hex');
 
         const user = await User.findOne({
             verificationToken,
+            verificationTokenExpire: { $gt: Date.now() },
             isVerified: false
         });
 
@@ -86,22 +109,17 @@ const verifyEmail = async (req, res) => {
 
         user.isVerified = true;
         user.verificationToken = undefined;
+        user.verificationTokenExpire = undefined;
         await user.save();
 
-        const token = generateToken(user._id);
+        // Optional: Send welcome email here
 
         res.status(200).json({
             success: true,
-            message: 'Email verified successfully',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+            message: 'Email verified successfully. You can now login.'
         });
     } catch (error) {
+        console.error('Verification error:', error);
         res.status(500).json({
             success: false,
             message: 'Verification failed',

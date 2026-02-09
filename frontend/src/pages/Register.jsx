@@ -66,7 +66,12 @@ const Register = () => {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Registrasi Berhasil!</h2>
                     <p className="text-gray-600 mb-8">
-                        Akun Anda telah dibuat. Mengalihkan ke halaman login...
+                        Silakan cek email Anda untuk melakukan aktivasi akun.
+                        <br />
+                        <span className="text-sm text-gray-500">(Cek folder Spam jika tidak ada di Inbox)</span>
+                    </p>
+                    <p className="text-gray-600 mb-8">
+                        Mengalihkan ke halaman login...
                     </p>
                     <Link to="/login" className="btn btn-primary w-full py-3 inline-block">
                         Login Sekarang

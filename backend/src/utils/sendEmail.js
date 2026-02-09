@@ -1,28 +1,28 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 const sendEmail = async (options) => {
-    // Create transporter based on .env configuration
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_SMTP_HOST || process.env.SMTP_HOST || 'smtp.ethereal.email',
-        port: process.env.EMAIL_SMTP_PORT || process.env.SMTP_PORT || 587,
-        secure: process.env.EMAIL_SMTP_SECURE === 'true', // true for 465, false for other ports
-        auth: {
-            user: process.env.EMAIL_SMTP_USER || process.env.SMTP_USER,
-            pass: process.env.EMAIL_SMTP_PASS || process.env.SMTP_PASS
-        }
-    });
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    const message = {
-        from: `${process.env.SMTP_FROM_NAME || 'Perluni App'} <${process.env.EMAIL_SMTP_USER || process.env.SMTP_FROM_EMAIL || 'noreply@perluni.org'}>`,
+    const msg = {
         to: options.email,
+        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@perluni.org', // Use the email address or domain you verified with SendGrid
         subject: options.subject,
         text: options.message,
-        html: options.html
+        html: options.html,
     };
 
-    const info = await transporter.sendMail(message);
+    try {
+        await sgMail.send(msg);
+        console.log('Email sent successfully');
+    } catch (error) {
+        console.error('Error sending email:', error);
 
-    console.log('Message sent: %s', info.messageId);
+        if (error.response) {
+            console.error(error.response.body);
+            throw new Error(`Email could not be sent: ${JSON.stringify(error.response.body.errors)}`);
+        }
+        throw new Error(`Email could not be sent: ${error.message}`);
+    }
 };
 
 module.exports = sendEmail;

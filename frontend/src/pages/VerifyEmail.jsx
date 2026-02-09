@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi';
 
@@ -8,12 +8,19 @@ const VerifyEmail = () => {
     const [status, setStatus] = useState('loading'); // loading, success, error
     const [message, setMessage] = useState('');
 
+    const navigate = useNavigate();
+
     useEffect(() => {
         const verify = async () => {
             try {
                 await authAPI.verifyEmail(token);
                 setStatus('success');
-                setMessage('Email berhasil diverifikasi! Anda sekarang dapat login.');
+                setMessage('Email berhasil diverifikasi! Anda akan dialihkan ke halaman utama...');
+
+                // Redirect to homepage after 3 seconds
+                setTimeout(() => {
+                    navigate('/');
+                }, 3000);
             } catch (error) {
                 setStatus('error');
                 setMessage(error.response?.data?.message || 'Verifikasi gagal. Link mungkin sudah kedaluwarsa atau tidak valid.');
@@ -26,7 +33,7 @@ const VerifyEmail = () => {
             setStatus('error');
             setMessage('Token verifikasi tidak ditemukan.');
         }
-    }, [token]);
+    }, [token, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-surface-light">
@@ -46,9 +53,14 @@ const VerifyEmail = () => {
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifikasi Berhasil!</h2>
                         <p className="text-gray-600 mb-8">{message}</p>
-                        <Link to="/login" className="btn btn-primary w-full py-3 inline-block">
-                            Masuk ke Akun
-                        </Link>
+                        <div className="flex gap-4 w-full">
+                            <Link to="/login" className="btn btn-outline flex-1 py-3 text-center">
+                                Login
+                            </Link>
+                            <Link to="/" className="btn btn-primary flex-1 py-3 text-center">
+                                Ke Beranda
+                            </Link>
+                        </div>
                     </div>
                 )}
 
