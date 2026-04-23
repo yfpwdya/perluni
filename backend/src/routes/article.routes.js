@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const {
-    getArticles,
-    getArticle,
-    createArticle,
-    updateArticle,
-    deleteArticle
+  getArticles,
+  getArticle,
+  createArticle,
+  updateArticle,
+  deleteArticle,
 } = require('../controllers/article.controller');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, optionalProtect, authorize } = require('../middleware/auth');
 
-// Public routes
-router.get('/', getArticles);
-router.get('/:id', getArticle);
+// Public routes (with optional auth to allow admin preview of drafts)
+router.get('/', optionalProtect, getArticles);
+router.get('/:id', optionalProtect, getArticle);
 
 // Protected routes (require authentication)
 router.post('/', protect, authorize('admin'), createArticle);

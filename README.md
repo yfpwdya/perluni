@@ -1,124 +1,148 @@
 # Perluni - Website Organisasi
 
-Website organisasi modern menggunakan React, Express, dan MongoDB (MERN Stack).
+Website organisasi berbasis **React + Express** dengan backend SQL (default: **PostgreSQL**).
 
-## 📁 Struktur Project
+## Tech Stack
+
+### Frontend
+- React (Vite)
+- Axios
+- React Router
+
+### Backend
+- Express.js
+- Sequelize ORM
+- PostgreSQL (recommended) / MySQL (opsional)
+- JWT authentication
+- SendGrid (opsional untuk verifikasi email)
+
+---
+
+## Struktur Project
 
 ```
 Perluni/
-├── backend/          # Express.js API Server
+├── backend/
 │   ├── src/
-│   │   ├── config/       # Database configuration
-│   │   ├── controllers/  # Request handlers
-│   │   ├── middleware/   # Auth middleware
-│   │   ├── models/       # Mongoose models
-│   │   ├── routes/       # API routes
-│   │   ├── services/     # Business logic
-│   │   └── utils/        # Helper functions
-│   ├── .env             # Environment variables
-│   ├── package.json
-│   └── server.js        # Entry point
-│
-├── frontend/         # React.js Application
-│   ├── src/
-│   │   ├── components/   # Reusable components
-│   │   ├── context/      # React Context
-│   │   ├── hooks/        # Custom hooks
-│   │   ├── layouts/      # Page layouts
-│   │   ├── pages/        # Page components
-│   │   ├── services/     # API services
-│   │   ├── styles/       # CSS files
-│   │   └── utils/        # Helper functions
-│   ├── .env
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── utils/
+│   ├── .env.example
+│   ├── server.js
 │   └── package.json
-│
-└── README.md
+└── frontend/
+    ├── src/
+    ├── .env
+    └── package.json
 ```
 
-## 🚀 Cara Menjalankan
+---
 
-### Prerequisites
-- Node.js (v18+)
-- MongoDB Atlas account (atau MongoDB lokal)
-
-### Setup Backend
+## Setup Backend
 
 1. Masuk ke folder backend:
    ```bash
    cd backend
    ```
 
-2. Edit file `.env` dan masukkan MongoDB URI Anda:
+2. Install dependency:
+   ```bash
+   npm install
    ```
-   PORT=5000
-   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
-   JWT_SECRET=your_secret_key_here
+
+3. Copy env file:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Isi konfigurasi database di `.env` (disarankan PostgreSQL):
+   ```env
+   DATABASE_URL=postgres://postgres:postgres@localhost:5432/perluni_db
+   DB_DIALECT=postgres
+   JWT_SECRET=your_secret
    JWT_EXPIRES_IN=7d
    ```
 
-3. Jalankan server:
+5. Jalankan server:
    ```bash
    npm run dev
    ```
-   Server akan berjalan di `http://localhost:5000`
 
-### Setup Frontend
+Saat startup pertama, backend akan:
+- membuat tabel SQL otomatis (`sequelize.sync`)
+- mengimpor data sensus dari file Excel ke tabel `members` jika tabel masih kosong
+
+---
+
+## Setup Frontend
 
 1. Masuk ke folder frontend:
    ```bash
    cd frontend
-   ```
-
-2. Jalankan development server:
-   ```bash
+   npm install
    npm run dev
    ```
-   Aplikasi akan berjalan di `http://localhost:5173`
 
-## 🔗 API Endpoints
+Frontend default ke API:
+`http://localhost:5000/api`
 
-### Authentication
-- `POST /api/auth/register` - Register user baru
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user (protected)
+---
 
-### Articles
-- `GET /api/articles` - Get semua artikel
-- `GET /api/articles/:id` - Get artikel by ID
-- `POST /api/articles` - Buat artikel baru (admin only)
-- `PUT /api/articles/:id` - Update artikel (admin only)
-- `DELETE /api/articles/:id` - Delete artikel (admin only)
+## Endpoint Utama
 
-### Health Check
-- `GET /api/health` - Cek status server
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/verify-email/:token`
+- `GET /api/auth/me`
+- `GET /api/auth/users` (admin)
+- `PATCH /api/auth/users/:id/role` (admin)
 
-## 📝 Fitur
+### Sensus Organisasi
+- `GET /api/sensus`
+- `GET /api/sensus/search?query=...&category=mahasiswa|alumni|all`
+- `GET /api/sensus/stats`
+- `GET /api/sensus/universities`
+- `GET /api/sensus/sheets`
+- `GET /api/sensus/sheet/:sheetName`
 
-- ✅ Landing page modern dengan animasi
-- ✅ Halaman About dengan visi, misi & timeline
-- ✅ Halaman Articles dengan search & filter
-- ✅ Halaman Contact dengan form
-- ✅ Login & Authentication dengan JWT
-- ✅ Responsive design untuk mobile
-- ✅ Dark theme dengan glassmorphism
+### Artikel
+- `GET /api/articles`
+- `GET /api/articles/:id`
+- `POST /api/articles` (admin)
+- `PUT /api/articles/:id` (admin)
+- `DELETE /api/articles/:id` (admin)
 
-## 🛠️ Tech Stack
+### Feedback Organisasi
+- `POST /api/feedback` (publik)
+- `GET /api/feedback` (admin) dengan query opsional:
+  - `status=all|new|reviewed`
+  - `search=nama/email`
+  - `page` & `limit`
+  - response menyertakan `stats` (total/new/reviewed/filtered)
+- `PATCH /api/feedback/:id/review` (admin)
 
-### Frontend
-- React 19
-- React Router DOM
-- Axios
-- React Icons
-- Vite
+### Frontend Route
+- `/` (landing organisasi: profil organisasi + container foto anggota di tengah + pencarian anggota)
+- `/publikasi` (daftar publikasi + search, filter kategori, pagination)
+- `/publikasi/:id` (detail publikasi)
+- `/admin` (dashboard admin ringkas)
+- `/admin/feedback` (dashboard admin feedback: ringkasan statistik + pencarian nama/email + review)
+- `/admin/publikasi` (manajemen publikasi: create/edit/delete + filter)
+- `/admin/users` (manajemen role user: promote/demote admin)
 
-### Backend
-- Express.js
-- Mongoose (MongoDB ODM)
-- JWT (JSON Web Token)
-- bcryptjs
-- CORS
-- dotenv
+### Catatan UI
+- Asset visual lokal:
+  - `logo cina.avif` dipakai untuk branding (navbar/footer)
+  - `foto cina.avif` difokuskan sebagai container foto anggota di halaman utama agar lebih relevan dengan scope organisasi.
 
-## 📧 Kontak
+---
 
-Untuk pertanyaan, silakan hubungi team developer.
+## Catatan Migrasi
+
+Backend sudah dimigrasikan dari MongoDB ke SQL.
+Untuk kebutuhan organisasi dan data terstruktur (anggota, artikel, auth), **PostgreSQL lebih direkomendasikan** daripada MySQL karena dukungan query teks dan tipe data lebih fleksibel.

@@ -1,141 +1,146 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FiLogIn, FiLogOut, FiMenu, FiShield, FiUser, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
-import {
-  FiMenu,
-  FiX,
-  FiHome,
-  FiLogIn,
-  FiLogOut,
-  FiUser
-} from 'react-icons/fi';
+const navItems = [
+  { label: 'Tentang', href: '/#tentang' },
+  { label: 'Profil Organisasi', href: '/#profil-organisasi' },
+  { label: 'Cari Anggota', href: '/#cari-anggota' },
+  { label: 'Kontak', href: '/#kontak' },
+];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
-  const location = useLocation();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
-
-  const navLinks = [
-    { path: '/', label: 'Beranda', icon: <FiHome /> }
-  ];
-
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-background-dark/90 backdrop-blur-xl shadow-lg py-3' : 'py-4 bg-transparent'
-      }`}>
-      <div className="container flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 font-bold text-2xl text-white hover:opacity-90 transition-opacity group">
-          <img src="/logo cina.avif" alt="Perluni Logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
-          <span className="text-[#252423]">Perluni</span>
-          <span className="text-[#dfc47b]">Tiongkok</span>
-        </Link>
+    <header className="sticky top-0 z-50">
+      <div className="bg-brand-800 text-white text-[11px] sm:text-xs">
+        <div className="container-app h-8 flex items-center justify-between gap-2">
+          <p className="truncate">Portal Data Organisasi Perluni Tiongkok</p>
+          <span className="hidden sm:inline text-white/80">Layanan resmi internal organisasi</span>
+        </div>
+      </div>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          <ul className="flex items-center gap-2">
-            {navLinks.map((link) => (
-              <li key={link.path}>
-                <Link
-                  to={link.path}
-                  className={`flex items-center gap-2 px-4 py-2.5 font-medium rounded-lg transition-all ${location.pathname === link.path
-                    ? 'text-primary-400 bg-primary-400/10'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                  {link.icon}
-                  <span>{link.label}</span>
-                </Link>
-              </li>
+      <div
+        className={`transition-all border-b ${
+          scrolled
+            ? 'bg-white/95 backdrop-blur-xl border-slate-200 shadow-[0_10px_30px_rgba(15,23,42,0.06)]'
+            : 'bg-white/90 border-slate-100'
+        }`}
+      >
+        <div className="container-app h-16 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <img src="/logo cina.avif" alt="Logo Perluni" className="w-9 h-9 rounded-lg object-cover ring-2 ring-brand-100" />
+            <div className="leading-tight">
+              <p className="text-sm font-semibold text-slate-900">Perluni Tiongkok</p>
+              <p className="text-[11px] text-slate-500">Sistem Informasi Organisasi</p>
+            </div>
+          </Link>
+
+          <nav className="hidden lg:flex items-center gap-1">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="px-3 py-2 text-sm text-slate-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
+              >
+                {item.label}
+              </a>
             ))}
-          </ul>
+          </nav>
 
-          <div className="flex items-center gap-4 border-l border-white/10 pl-8">
+          <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-2 text-gray-300 font-medium">
-                  <FiUser className="text-primary-400" />
-                  {user?.name}
-                </span>
-                <button onClick={logout} className="btn btn-secondary px-5 py-2 text-sm">
-                  <FiLogOut />
-                  <span>Logout</span>
+              <>
+                {isAdmin && (
+                  <Link to="/admin" className="btn btn-secondary text-sm border-brand-100 text-brand-700">
+                    <FiShield /> Admin
+                  </Link>
+                )}
+
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-50 text-slate-700 text-sm border border-brand-100">
+                  <FiUser className="text-brand-600" />
+                  <span className="max-w-32 truncate">{user?.name}</span>
+                </div>
+                <button type="button" onClick={logout} className="btn btn-secondary text-sm">
+                  <FiLogOut /> Logout
                 </button>
-              </div>
+              </>
             ) : (
-              <Link to="/login" className="btn btn-primary px-5 py-2 text-sm">
-                <FiLogIn />
-                <span>Login</span>
+              <Link to="/login" className="btn btn-primary text-sm">
+                <FiLogIn /> Login
               </Link>
             )}
           </div>
+
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-lg border border-slate-200 text-slate-700"
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <FiX /> : <FiMenu />}
+          </button>
         </div>
 
-        {/* Mobile Toggle */}
-        <button
-          className="md:hidden p-2 text-2xl text-white bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <FiX /> : <FiMenu />}
-        </button>
-
-        {/* Mobile Menu */}
-        <div className={`md:hidden fixed inset-0 top-[60px] bg-background-dark/95 backdrop-blur-xl transition-all duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
-          }`}>
-          <div className="flex flex-col p-6 gap-6 h-full overflow-y-auto">
-            <ul className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className={`flex items-center gap-3 px-4 py-4 text-lg font-medium rounded-xl transition-all ${location.pathname === link.path
-                      ? 'text-primary-400 bg-primary-400/10'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                  >
-                    {link.icon}
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
+        {isOpen && (
+          <div className="md:hidden border-t border-slate-200 bg-white">
+            <div className="container-app py-3 flex flex-col gap-1">
+              {navItems.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg"
+                >
+                  {item.label}
+                </a>
               ))}
-            </ul>
 
-            <div className="mt-auto border-t border-white/10 pt-6">
-              {isAuthenticated ? (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 px-4 py-2 text-gray-300">
-                    <FiUser className="text-2xl text-primary-400" />
-                    <span className="text-lg font-medium">{user?.name}</span>
-                  </div>
-                  <button onClick={logout} className="btn btn-secondary w-full justify-center">
-                    <FiLogOut />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              ) : (
-                <Link to="/login" className="btn btn-primary w-full justify-center">
-                  <FiLogIn />
-                  <span>Login</span>
+              {isAuthenticated && isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="px-3 py-2 text-sm text-brand-700 bg-brand-50 rounded-lg mt-1"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <FiShield /> Admin Panel
+                  </span>
                 </Link>
               )}
+
+              <div className="pt-2 mt-2 border-t border-slate-100">
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
+                    className="btn btn-secondary w-full text-sm"
+                  >
+                    <FiLogOut /> Logout
+                  </button>
+                ) : (
+                  <Link to="/login" onClick={() => setIsOpen(false)} className="btn btn-primary w-full text-sm">
+                    <FiLogIn /> Login
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
-    </nav>
+    </header>
   );
 };
 

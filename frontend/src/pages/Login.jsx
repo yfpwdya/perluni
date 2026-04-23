@@ -1,13 +1,10 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiArrowRight, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,16 +12,13 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (event) => {
+    setFormData((prev) => ({ ...prev, [event.target.name]: event.target.value }));
     setError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
 
@@ -39,110 +33,96 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="flex flex-col md:flex-row w-full max-w-5xl bg-surface-glass border border-surface-border rounded-2xl overflow-hidden shadow-2xl min-h-[600px]">
-        {/* Left Side - Branding */}
-        <div className="hidden md:flex flex-col justify-between p-12 w-1/2 bg-gradient-to-br from-primary-900/40 to-secondary-900/40 relative overflow-hidden">
-          <Link to="/" className="flex items-center gap-3 font-bold text-2xl text-white relative z-10 w-fit">
-            <span className="text-3xl text-primary-400">🏢</span>
-            <span className="bg-gradient-to-br from-primary-400 to-secondary-500 bg-clip-text text-transparent">Perluni</span>
-          </Link>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-100">
+      <div className="hidden lg:flex bg-brand-gradient text-white p-12 flex-col justify-between relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/15 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-white/20 blur-3xl" />
 
-          <div className="relative z-10 mt-auto mb-12">
-            <h1 className="text-4xl font-bold mb-4 leading-tight">
-              Selamat Datang <span className="gradient-text">Kembali</span>
-            </h1>
-            <p className="text-gray-300 text-lg leading-relaxed">
-              Masuk ke akun Anda untuk mengakses dashboard dan fitur eksklusif Perluni.
-            </p>
-          </div>
-
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute w-64 h-64 bg-primary-500/20 rounded-full blur-3xl top-[-20%] right-[-20%] animate-pulse"></div>
-            <div className="absolute w-64 h-64 bg-secondary-500/20 rounded-full blur-3xl bottom-[-20%] left-[-20%] animate-pulse animation-delay-2000"></div>
+        <div className="relative flex items-center gap-3">
+          <img src="/logo cina.avif" alt="Perluni" className="w-12 h-12 rounded-xl ring-2 ring-white/40" />
+          <div>
+            <p className="text-xl font-semibold">Perluni Tiongkok</p>
+            <p className="text-sm text-white/80">Sistem Informasi Organisasi</p>
           </div>
         </div>
 
-        {/* Right Side - Form */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 bg-background-card/50 backdrop-blur-md flex flex-col justify-center">
-          <div className="max-w-md mx-auto w-full">
-            <div className="mb-8 text-center md:text-left">
-              <h2 className="text-3xl font-bold mb-2">Login</h2>
-              <p className="text-gray-400">Masukkan kredensial Anda untuk melanjutkan</p>
+        <div className="relative max-w-md mx-auto w-full">
+          <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-3 shadow-[0_24px_50px_rgba(2,6,23,0.45)] border border-white/30">
+            <img
+              src="/foto%20cina.avif"
+              alt="Kebersamaan anggota Perluni"
+              className="w-full max-h-[320px] object-contain object-center rounded-xl opacity-80"
+            />
+          </div>
+        </div>
+
+        <div className="relative">
+          <h1 className="text-4xl font-semibold text-white leading-tight">Selamat Datang Kembali</h1>
+          <p className="mt-3 text-white/90 max-w-md">
+            Masuk untuk mengakses data anggota dan fitur internal organisasi Perluni.
+          </p>
+        </div>
+      </div>
+
+      <div className="p-6 md:p-10 flex items-center justify-center">
+        <div className="w-full max-w-md card p-6 md:p-8 border-brand-100/70">
+          <div className="mb-6">
+            <span className="chip">Akses Internal</span>
+            <h2 className="text-2xl font-semibold mt-3">Login Akun</h2>
+            <p className="text-sm text-slate-500 mt-1">Masuk ke akun Anda untuk melanjutkan.</p>
+          </div>
+
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="relative">
+              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="input-base pl-10"
+                placeholder="Email"
+                required
+              />
             </div>
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-200 rounded-lg text-sm flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                {error}
-              </div>
-            )}
+            <div className="relative">
+              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="input-base pl-10 pr-10"
+                placeholder="Password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">Email</label>
-                <div className="relative">
-                  <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="input pl-12"
-                    placeholder="Masukkan email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
+            <button type="submit" disabled={loading} className="btn btn-primary w-full mt-1">
+              {loading ? 'Memproses...' : 'Login'} {!loading && <FiArrowRight />}
+            </button>
+          </form>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-300">Password</label>
-                <div className="relative">
-                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    className="input pl-12 pr-12"
-                    placeholder="Masukkan password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FiEyeOff /> : <FiEye />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full py-3.5 shadow-lg shadow-primary-500/20"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                      <span>Memproses...</span>
-                    </div>
-                  ) : (
-                    <>
-                      Login
-                      <FiArrowRight />
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-
-            Belum punya akun? <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">Daftar di sini</Link>
-          </div>
+          <p className="text-sm text-slate-600 mt-5">
+            Belum punya akun?{' '}
+            <Link to="/register" className="font-medium text-brand-700 hover:text-brand-800">
+              Daftar di sini
+            </Link>
+          </p>
         </div>
       </div>
     </div>

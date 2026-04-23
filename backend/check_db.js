@@ -1,20 +1,23 @@
-const mongoose = require('mongoose');
-const User = require('./src/models/User');
 require('dotenv').config();
+const { connectDB } = require('./src/config/database');
+const { User } = require('./src/models');
 
 const checkUser = async () => {
-    try {
-        await mongoose.connect(process.env.MONGODB_URI);
-        console.log('Connected to DB');
+  try {
+    await connectDB();
+    console.log('Connected to DB');
 
-        const users = await User.find({}).sort({ createdAt: -1 }).limit(1);
-        console.log('Latest User:', users);
+    const users = await User.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: 1,
+    });
 
-        process.exit();
-    } catch (error) {
-        console.error(error);
-        process.exit(1);
-    }
+    console.log('Latest User:', users.map((u) => u.toJSON()));
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
 checkUser();

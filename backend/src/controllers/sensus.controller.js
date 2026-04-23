@@ -1,352 +1,284 @@
-const xlsx = require('xlsx');
-const path = require('path');
+const { sequelize, Op, getLikeOperator } = require('../config/database');
+const { Member } = require('../models');
 
-// Path to Excel file
-const EXCEL_FILE_PATH = path.join(__dirname, '../../Data Mahasiswa dan Dokter WNI.xlsx');
+const toResponseMember = (member) => ({
+  id: member.id,
+  name: member.name,
+  gender: member.gender,
+  origin: member.origin,
+  university: member.university,
+  major: member.major,
+  education_level: member.educationLevel,
+  entry_year: member.entryYear,
+  duration: member.duration,
+  hospital: member.hospital,
+  scholarship_type: member.scholarshipType,
+  remarks: member.remarks,
+  category: member.category,
+  sheet: member.sourceSheet,
+});
 
-/**
- * Normalize gender value
- */
-const normalizeGender = (value) => {
-    if (!value) return '';
-    const v = String(value).toLowerCase().trim();
-    if (v === 'l' || v === 'laki-laki' || v === 'male') return 'Laki-laki';
-    if (v === 'p' || v === 'perempuan' || v === 'female') return 'Perempuan';
-    return value;
+const fieldMap = {
+  name: 'name',
+  gender: 'gender',
+  origin: 'origin',
+  university: 'university',
+  major: 'major',
+  education_level: 'educationLevel',
+  entry_year: 'entryYear',
+  duration: 'duration',
+  hospital: 'hospital',
+  scholarship_type: 'scholarshipType',
+  remarks: 'remarks',
+  category: 'category',
+  sheet: 'sourceSheet',
 };
 
-/**
- * Transform raw Excel row to clean format
- */
-const transformRow = (row, index) => {
-    const name = String(row['__EMPTY'] || '').trim();
-    const no = row['Data Mahasiswa Bidang Kedokteran di Tiongkok'];
-
-    // Skip header and empty rows
-    if (!name ||
-        name === '' ||
-        name === 'Nama ' ||
-        name === 'Nama' ||
-        name.includes('PERLUNI') ||
-        name.includes('Periode') ||
-        name.includes('Data Mahasiswa') ||
-        name.includes(':')) {
-        return null;
-    }
-
-    // Skip rows that are just university headers (no name, just university)
-    if ((no === '' || no === undefined || no === null) && !name) {
-        return null;
-    }
-
-    // Skip rows where 'no' is a header like 'No'
-    if (no === 'No' || no === 'NO') {
-        return null;
-    }
-
-    return {
-        id: index,
-        name: name,
-        gender: normalizeGender(row['__EMPTY_1']),
-        origin: String(row['__EMPTY_2'] || '').trim().replace(/\n/g, ' '),
-        university: String(row['__EMPTY_3'] || '').trim(),
-        major: String(row['__EMPTY_4'] || '').trim(),
-        education_level: String(row['__EMPTY_5'] || '').trim(),
-        entry_year: row['__EMPTY_6'] ? parseInt(row['__EMPTY_6']) || row['__EMPTY_6'] : null,
-        duration: String(row['__EMPTY_7'] || '').trim(),
-        hospital: String(row['__EMPTY_8'] || '').trim(),
-        scholarship_type: String(row['__EMPTY_9'] || '').trim() || 'Mandiri',
-        remarks: String(row['__EMPTY_10'] || '').trim()
-    };
-};
-
-/**
- * Read and parse Excel file
- */
-const readExcelFile = () => {
-    try {
-        const workbook = xlsx.readFile(EXCEL_FILE_PATH);
-        const result = {};
-
-        workbook.SheetNames.forEach(sheetName => {
-            const worksheet = workbook.Sheets[sheetName];
-            const rawData = xlsx.utils.sheet_to_json(worksheet, { defval: '' });
-
-            // Transform and filter data
-            let idCounter = 1;
-            const transformedData = rawData
-                .map((row, idx) => transformRow(row, idCounter++))
-                .filter(row => row !== null);
-
-            // Re-index IDs
-            transformedData.forEach((row, idx) => {
-                row.id = idx + 1;
-            });
-
-            result[sheetName] = transformedData;
-        });
-
-        return result;
-    } catch (error) {
-        console.error('Error reading Excel file:', error);
-        throw error;
-    }
-};
-
-/**
- * Get all data from Excel file
- * GET /api/sensus
- */
 exports.getAllData = async (req, res) => {
-    try {
-        const data = readExcelFile();
+  try {
+    const members = await Member.findAll({
+      where: { isActive: true },
+      order: [['name', 'ASC']],
+    });
 
-        // Combine all sheets into one array
-        const allData = [];
-        Object.keys(data).forEach(sheet => {
-            data[sheet].forEach(row => {
-                allData.push({ ...row, sheet: sheet });
-            });
-        });
+    const sheets = [...new Set(members.map((m) => m.sourceSheet))];
 
-        res.json({
-            success: true,
-            message: 'Data retrieved successfully',
-            total: allData.length,
-            sheets: Object.keys(data),
-            data: allData
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to read data',
-            error: error.message
-        });
-    }
+    return res.json({
+      success: true,
+      message: 'Data retrieved successfully',
+      total: members.length,
+      sheets,
+      data: members.map(toResponseMember),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to read data',
+      error: error.message,
+    });
+  }
 };
 
-/**
- * Get data from specific sheet
- * GET /api/sensus/sheet/:sheetName
- */
 exports.getSheetData = async (req, res) => {
-    try {
-        const { sheetName } = req.params;
-        const data = readExcelFile();
+  try {
+    const { sheetName } = req.params;
 
-        if (!data[sheetName]) {
-            return res.status(404).json({
-                success: false,
-                message: `Sheet "${sheetName}" not found`,
-                availableSheets: Object.keys(data)
-            });
-        }
+    const members = await Member.findAll({
+      where: {
+        sourceSheet: sheetName,
+        isActive: true,
+      },
+      order: [['name', 'ASC']],
+    });
 
-        res.json({
-            success: true,
-            message: `Data from sheet "${sheetName}" retrieved successfully`,
-            count: data[sheetName].length,
-            data: data[sheetName]
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to read data',
-            error: error.message
-        });
+    if (!members.length) {
+      const availableSheets = await Member.findAll({
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('source_sheet')), 'sourceSheet']],
+        raw: true,
+      });
+
+      return res.status(404).json({
+        success: false,
+        message: `Sheet "${sheetName}" not found`,
+        availableSheets: availableSheets.map((item) => item.sourceSheet),
+      });
     }
+
+    return res.json({
+      success: true,
+      message: `Data from sheet "${sheetName}" retrieved successfully`,
+      count: members.length,
+      data: members.map(toResponseMember),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to read data',
+      error: error.message,
+    });
+  }
 };
 
-/**
- * Get list of available sheets
- * GET /api/sensus/sheets
- */
 exports.getSheets = async (req, res) => {
-    try {
-        const data = readExcelFile();
-        const sheetsInfo = Object.keys(data).map(name => ({
-            name: name,
-            rowCount: data[name].length
-        }));
+  try {
+    const sheets = await Member.findAll({
+      attributes: [
+        [sequelize.col('source_sheet'), 'name'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'rowCount'],
+      ],
+      where: { isActive: true },
+      group: [sequelize.col('source_sheet')],
+      order: [[sequelize.col('source_sheet'), 'ASC']],
+      raw: true,
+    });
 
-        res.json({
-            success: true,
-            message: 'Sheets list retrieved successfully',
-            sheets: sheetsInfo
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to read sheets',
-            error: error.message
-        });
-    }
+    return res.json({
+      success: true,
+      message: 'Sheets list retrieved successfully',
+      sheets: sheets.map((sheet) => ({
+        name: sheet.name,
+        rowCount: Number(sheet.rowCount),
+      })),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to read sheets',
+      error: error.message,
+    });
+  }
 };
 
-/**
- * Search data in a sheet or by category
- * GET /api/sensus/search?sheet=SheetName&query=searchTerm&field=fieldName&category=cat
- */
 exports.searchData = async (req, res) => {
-    try {
-        const { sheet, query, field, category } = req.query;
-        const data = readExcelFile();
+  try {
+    const { sheet, query, field, category } = req.query;
 
-        let searchData = [];
+    const keyword = String(query || '').trim();
+    const likeOp = getLikeOperator();
+    const where = { isActive: true };
 
-        // Determine which sheets to search based on category or sheet param
-        if (sheet) {
-            if (data[sheet]) {
-                searchData = data[sheet].map(row => ({ ...row, sheet: sheet }));
-            }
-        } else if (category && category !== 'all') {
-            // Filter sheets based on category keyword
-            const targetKeyword = category.toLowerCase();
-            Object.keys(data).forEach(sheetName => {
-                // Check if sheet name contains category (e.g., 'mahasiswa' in 'Data Mahasiswa')
-                if (sheetName.toLowerCase().includes(targetKeyword)) {
-                    data[sheetName].forEach(row => {
-                        searchData.push({ ...row, sheet: sheetName });
-                    });
-                }
-            });
-        } else {
-            // Search in all sheets
-            Object.keys(data).forEach(sheetName => {
-                data[sheetName].forEach(row => {
-                    searchData.push({ ...row, sheet: sheetName });
-                });
-            });
-        }
-
-        if (!query) {
-            return res.status(400).json({
-                success: false,
-                message: 'Search query is required'
-            });
-        }
-
-        const searchQuery = query.toLowerCase();
-
-        const results = searchData.filter(row => {
-            if (field) {
-                const value = String(row[field] || '').toLowerCase();
-                return value.includes(searchQuery);
-            } else {
-                return Object.values(row).some(value =>
-                    String(value).toLowerCase().includes(searchQuery)
-                );
-            }
-        });
-
-        // Limit results to 50 for performance
-        const limitedResults = results.slice(0, 50);
-
-        res.json({
-            success: true,
-            message: `Found ${results.length} results`,
-            query: query,
-            category: category || 'all',
-            count: limitedResults.length,
-            total_found: results.length,
-            data: limitedResults
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Search failed',
-            error: error.message
-        });
+    if (sheet) {
+      where.sourceSheet = sheet;
     }
+
+    if (category && category !== 'all') {
+      where.category = String(category).toLowerCase();
+    }
+
+    if (keyword) {
+      if (field && fieldMap[field]) {
+        where[fieldMap[field]] = {
+          [likeOp]: `%${keyword}%`,
+        };
+      } else {
+        where[Op.or] = [
+          { name: { [likeOp]: `%${keyword}%` } },
+          { university: { [likeOp]: `%${keyword}%` } },
+          { major: { [likeOp]: `%${keyword}%` } },
+          { origin: { [likeOp]: `%${keyword}%` } },
+          { hospital: { [likeOp]: `%${keyword}%` } },
+          { remarks: { [likeOp]: `%${keyword}%` } },
+          { sourceSheet: { [likeOp]: `%${keyword}%` } },
+        ];
+      }
+    }
+
+    const results = await Member.findAll({
+      where,
+      order: [['name', 'ASC']],
+      limit: 50,
+    });
+
+    return res.json({
+      success: true,
+      message: keyword
+        ? `Found ${results.length} results`
+        : `Showing ${results.length} members`,
+      query: keyword,
+      category: category || 'all',
+      count: results.length,
+      total_found: results.length,
+      data: results.map(toResponseMember),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Search failed',
+      error: error.message,
+    });
+  }
 };
 
-/**
- * Get statistics
- * GET /api/sensus/stats
- */
-exports.getStats = async (req, res) => {
-    try {
-        const data = readExcelFile();
+exports.getStats = async (_req, res) => {
+  try {
+    const [totalRecords, totalMahasiswa, totalAlumni, universities, entryYears, genderRows] = await Promise.all([
+      Member.count({ where: { isActive: true } }),
+      Member.count({ where: { isActive: true, category: 'mahasiswa' } }),
+      Member.count({ where: { isActive: true, category: 'alumni' } }),
+      Member.count({
+        where: {
+          isActive: true,
+          university: { [Op.not]: null },
+        },
+        distinct: true,
+        col: 'university',
+      }),
+      Member.findAll({
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('entry_year')), 'entryYear']],
+        where: {
+          isActive: true,
+          entryYear: { [Op.not]: null },
+        },
+        raw: true,
+      }),
+      Member.findAll({
+        attributes: ['gender', [sequelize.fn('COUNT', sequelize.col('id')), 'total']],
+        where: { isActive: true },
+        group: ['gender'],
+        raw: true,
+      }),
+    ]);
 
-        let totalMahasiswa = 0;
-        let totalDokter = 0;
-        const universities = new Set();
-        const entryYears = new Set();
-        const genderCount = { 'Laki-laki': 0, 'Perempuan': 0 };
+    const genderDistribution = { 'Laki-laki': 0, Perempuan: 0 };
+    genderRows.forEach((row) => {
+      if (row.gender === 'Laki-laki') genderDistribution['Laki-laki'] = Number(row.total);
+      if (row.gender === 'Perempuan') genderDistribution.Perempuan = Number(row.total);
+    });
 
-        Object.keys(data).forEach(sheetName => {
-            const sheetData = data[sheetName];
-
-            if (sheetName.toLowerCase().includes('mahasiswa')) {
-                totalMahasiswa += sheetData.length;
-            } else if (sheetName.toLowerCase().includes('dokter')) {
-                totalDokter += sheetData.length;
-            }
-
-            sheetData.forEach(row => {
-                if (row.university) universities.add(row.university);
-                if (row.entry_year) entryYears.add(row.entry_year);
-                if (row.gender === 'Laki-laki') genderCount['Laki-laki']++;
-                if (row.gender === 'Perempuan') genderCount['Perempuan']++;
-            });
-        });
-
-        res.json({
-            success: true,
-            message: 'Statistics retrieved successfully',
-            stats: {
-                total_records: totalMahasiswa + totalDokter,
-                total_mahasiswa: totalMahasiswa,
-                total_dokter: totalDokter,
-                total_universities: universities.size,
-                gender_distribution: genderCount,
-                entry_years: Array.from(entryYears).sort()
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get statistics',
-            error: error.message
-        });
-    }
+    return res.json({
+      success: true,
+      message: 'Statistics retrieved successfully',
+      stats: {
+        total_records: totalRecords,
+        total_mahasiswa: totalMahasiswa,
+        total_dokter: totalAlumni,
+        total_universities: universities,
+        gender_distribution: genderDistribution,
+        entry_years: entryYears
+          .map((item) => item.entryYear)
+          .filter(Boolean)
+          .sort((a, b) => Number(a) - Number(b)),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get statistics',
+      error: error.message,
+    });
+  }
 };
 
-/**
- * Get universities list
- * GET /api/sensus/universities
- */
-exports.getUniversities = async (req, res) => {
-    try {
-        const data = readExcelFile();
-        const universities = {};
+exports.getUniversities = async (_req, res) => {
+  try {
+    const universities = await Member.findAll({
+      attributes: [
+        ['university', 'name'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'totalMembers'],
+      ],
+      where: {
+        isActive: true,
+        university: { [Op.not]: null },
+      },
+      group: ['university'],
+      order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']],
+      raw: true,
+    });
 
-        Object.keys(data).forEach(sheetName => {
-            data[sheetName].forEach(row => {
-                if (row.university) {
-                    if (!universities[row.university]) {
-                        universities[row.university] = 0;
-                    }
-                    universities[row.university]++;
-                }
-            });
-        });
-
-        const sortedUniversities = Object.entries(universities)
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count);
-
-        res.json({
-            success: true,
-            message: 'Universities list retrieved successfully',
-            count: sortedUniversities.length,
-            data: sortedUniversities
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get universities',
-            error: error.message
-        });
-    }
+    return res.json({
+      success: true,
+      message: 'Universities list retrieved successfully',
+      total: universities.length,
+      data: universities.map((item) => ({
+        name: item.name,
+        totalMembers: Number(item.totalMembers),
+      })),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get universities',
+      error: error.message,
+    });
+  }
 };

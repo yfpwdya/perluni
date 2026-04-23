@@ -1,80 +1,105 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const articleSchema = new mongoose.Schema({
+const slugify = (value = '') =>
+  String(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+class Article extends Model {}
+
+Article.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
     title: {
-        type: String,
-        required: [true, 'Title is required'],
-        trim: true,
-        maxlength: [200, 'Title cannot exceed 200 characters']
+      type: DataTypes.STRING(200),
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Title is required' },
+      },
     },
     slug: {
-        type: String,
-        unique: true,
-        lowercase: true
+      type: DataTypes.STRING(220),
+      unique: true,
+      allowNull: false,
     },
     content: {
-        type: String,
-        required: [true, 'Content is required']
+      type: DataTypes.TEXT,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Content is required' },
+      },
     },
     excerpt: {
-        type: String,
-        maxlength: [500, 'Excerpt cannot exceed 500 characters']
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     coverImage: {
-        type: String,
-        default: null
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
     },
     category: {
-        type: String,
-        enum: ['berita', 'pengumuman', 'kegiatan', 'artikel'],
-        default: 'artikel'
+      type: DataTypes.ENUM('berita', 'pengumuman', 'kegiatan', 'artikel'),
+      defaultValue: 'artikel',
+      allowNull: false,
     },
-    tags: [{
-        type: String,
-        trim: true
-    }],
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+    tags: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
+    },
+    authorId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      field: 'author_id',
     },
     status: {
-        type: String,
-        enum: ['draft', 'published'],
-        default: 'draft'
+      type: DataTypes.ENUM('draft', 'published'),
+      defaultValue: 'draft',
+      allowNull: false,
     },
     publishedAt: {
-        type: Date,
-        default: null
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+      field: 'published_at',
     },
     views: {
-        type: Number,
-        default: 0
-    }
-}, {
-    timestamps: true
-});
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false,
+    },
+  },
+  {
+    sequelize,
+    modelName: 'Article',
+    tableName: 'articles',
+    underscored: true,
+    timestamps: true,
+    hooks: {
+      beforeValidate: (article) => {
+        if (article.title) {
+          article.slug = slugify(article.title);
+        }
+      },
+      beforeSave: (article) => {
+        if (!article.excerpt && article.content) {
+          article.excerpt = `${article.content.slice(0, 200)}...`;
+        }
 
-// Generate slug before saving
-articleSchema.pre('save', function (next) {
-    if (this.isModified('title')) {
-        this.slug = this.title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
-    }
+        if (article.changed('status') && article.status === 'published' && !article.publishedAt) {
+          article.publishedAt = new Date();
+        }
+      },
+    },
+  }
+);
 
-    // Generate excerpt from content if not provided
-    if (!this.excerpt && this.content) {
-        this.excerpt = this.content.substring(0, 200) + '...';
-    }
-
-    // Set publishedAt when status changes to published
-    if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
-        this.publishedAt = new Date();
-    }
-
-    next();
-});
-
-module.exports = mongoose.model('Article', articleSchema);
+module.exports = Article;
