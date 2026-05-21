@@ -8,6 +8,7 @@ import {
   FiUser,
 } from 'react-icons/fi';
 import { feedbackAPI } from '../services/api';
+import AdminTabs from '../components/AdminTabs';
 
 const statusOptions = [
   { value: 'all', label: 'Semua' },
@@ -138,6 +139,8 @@ const AdminFeedback = () => {
           </p>
         </div>
       </section>
+
+      <AdminTabs />
 
       <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {summaryCards.map((item) => (

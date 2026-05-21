@@ -3,6 +3,7 @@ const User = require('./User');
 const Article = require('./Article');
 const Member = require('./Member');
 const Feedback = require('./Feedback');
+const MemberAudit = require('./MemberAudit');
 
 User.hasMany(Article, {
   foreignKey: 'authorId',
@@ -24,6 +25,26 @@ Feedback.belongsTo(User, {
   as: 'user',
 });
 
+Member.hasMany(MemberAudit, {
+  foreignKey: 'memberId',
+  as: 'audits',
+});
+
+MemberAudit.belongsTo(Member, {
+  foreignKey: 'memberId',
+  as: 'member',
+});
+
+User.hasMany(MemberAudit, {
+  foreignKey: 'actorId',
+  as: 'memberAuditLogs',
+});
+
+MemberAudit.belongsTo(User, {
+  foreignKey: 'actorId',
+  as: 'actor',
+});
+
 const syncModels = async () => {
   await sequelize.sync({
     alter: process.env.DB_SYNC_ALTER === 'true',
@@ -39,4 +60,5 @@ module.exports = {
   Article,
   Member,
   Feedback,
+  MemberAudit,
 };

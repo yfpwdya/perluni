@@ -15,6 +15,19 @@ const categoryOptions = [
   { value: 'alumni', label: 'Alumni' },
 ];
 
+const fieldOptions = [
+  { value: 'all', label: 'Semua Field' },
+  { value: 'name', label: 'Nama' },
+  { value: 'university', label: 'Universitas' },
+  { value: 'major', label: 'Program Studi' },
+  { value: 'origin', label: 'Asal Daerah' },
+  { value: 'education_level', label: 'Jenjang' },
+  { value: 'entry_year', label: 'Angkatan' },
+  { value: 'hospital', label: 'Afiliasi/Instansi' },
+  { value: 'scholarship_type', label: 'Beasiswa' },
+  { value: 'remarks', label: 'Catatan' },
+];
+
 const formatNumber = (value) => new Intl.NumberFormat('id-ID').format(Number(value || 0));
 
 const organizationValues = [
@@ -35,6 +48,7 @@ const organizationValues = [
 const Sensus = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
+  const [searchField, setSearchField] = useState('all');
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -70,7 +84,7 @@ const Sensus = () => {
 
       try {
         setIsSearching(true);
-        const response = await sensusAPI.search(keyword, category);
+        const response = await sensusAPI.search(keyword, category, searchField);
         setSearchResults(response.data?.data || []);
       } catch {
         setSearchResults([]);
@@ -80,7 +94,7 @@ const Sensus = () => {
     }, 320);
 
     return () => clearTimeout(timer);
-  }, [search, category]);
+  }, [search, category, searchField]);
 
   const statCards = useMemo(
     () => [
@@ -142,6 +156,9 @@ const Sensus = () => {
                 </a>
                 <a href="#profil-organisasi" className="btn bg-white/15 text-white border border-white/25 hover:bg-white/20 text-sm">
                   Lihat Profil Organisasi
+                </a>
+                <a href="/publikasi" className="btn bg-white/15 text-white border border-white/25 hover:bg-white/20 text-sm">
+                  Lihat Publikasi
                 </a>
               </div>
             </div>
@@ -220,8 +237,8 @@ const Sensus = () => {
                 <span className="chip">Pencarian Anggota</span>
                 <h2 className="section-title mt-3">Cari Data Anggota</h2>
                 <p className="text-sm text-slate-600 mt-2">
-                  Ketik minimal 2 huruf untuk mencari berdasarkan nama, universitas, atau program studi.
-                  Atau pilih kategori Mahasiswa/Alumni untuk menampilkan daftar berdasarkan kategori.
+                  Ketik minimal 2 huruf untuk mencari berdasarkan nama, universitas, program studi, asal,
+                  angkatan, dan field lainnya. Kamu juga bisa pilih kategori Mahasiswa/Alumni.
                 </p>
               </div>
               <span className="chip">
@@ -249,6 +266,23 @@ const Sensus = () => {
               ))}
             </div>
 
+            <div className="mb-3 max-w-sm">
+              <select
+                value={searchField}
+                onChange={(event) => {
+                  setSearchField(event.target.value);
+                  setShowResults(true);
+                }}
+                className="input-base text-sm"
+              >
+                {fieldOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    Cari by: {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -257,7 +291,11 @@ const Sensus = () => {
                 onChange={(event) => setSearch(event.target.value)}
                 onFocus={() => setShowResults(true)}
                 className="input-base pl-10"
-                placeholder="Contoh: Andi, Tsinghua, Kedokteran"
+                placeholder={
+                  searchField === 'all'
+                    ? 'Contoh: Andi, Tsinghua, Kedokteran'
+                    : `Cari ${fieldOptions.find((f) => f.value === searchField)?.label || 'data'}...`
+                }
               />
 
               {showResults && (search.trim().length >= 2 || category !== 'all') && (

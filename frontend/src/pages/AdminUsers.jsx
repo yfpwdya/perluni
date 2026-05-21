@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCcw, FiSearch, FiUserCheck } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
+import AdminTabs from '../components/AdminTabs';
 
 const AdminUsers = () => {
   const { user: currentUser } = useAuth();
@@ -66,6 +67,8 @@ const AdminUsers = () => {
           Kelola role akses user untuk mengatur siapa yang memiliki hak admin.
         </p>
       </section>
+
+      <AdminTabs />
 
       <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
         <div className="grid md:grid-cols-[1fr_auto] gap-3">

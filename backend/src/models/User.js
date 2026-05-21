@@ -42,8 +42,8 @@ User.init(
       allowNull: false,
       validate: {
         len: {
-          args: [6, 255],
-          msg: 'Password must be at least 6 characters',
+          args: [8, 255],
+          msg: 'Password must be at least 8 characters',
         },
       },
     },

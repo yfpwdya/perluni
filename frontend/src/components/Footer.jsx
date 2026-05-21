@@ -23,6 +23,7 @@ const Footer = () => {
           <ul className="space-y-2 text-sm text-slate-400">
             <li><a href="/#tentang" className="hover:text-brand-300">Tentang</a></li>
             <li><a href="/#profil-organisasi" className="hover:text-brand-300">Profil Organisasi</a></li>
+            <li><a href="/publikasi" className="hover:text-brand-300">Publikasi</a></li>
             <li><a href="/#cari-anggota" className="hover:text-brand-300">Cari Anggota</a></li>
             <li><a href="/#kontak" className="hover:text-brand-300">Kontak</a></li>
           </ul>

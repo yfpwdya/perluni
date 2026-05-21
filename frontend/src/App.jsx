@@ -11,6 +11,7 @@ import AdminFeedback from './pages/AdminFeedback';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminArticles from './pages/AdminArticles';
 import AdminUsers from './pages/AdminUsers';
+import AdminMembers from './pages/AdminMembers';
 import AdminRoute from './components/AdminRoute';
 
 function App() {
@@ -57,6 +58,14 @@ function App() {
               element={(
                 <AdminRoute>
                   <AdminUsers />
+                </AdminRoute>
+              )}
+            />
+            <Route
+              path="/admin/members"
+              element={(
+                <AdminRoute>
+                  <AdminMembers />
                 </AdminRoute>
               )}
             />

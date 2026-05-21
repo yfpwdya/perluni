@@ -5,6 +5,11 @@ const extractToken = (req) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     return req.headers.authorization.split(' ')[1];
   }
+
+  if (req.cookies?.auth_token) {
+    return req.cookies.auth_token;
+  }
+
   return null;
 };
 
@@ -42,7 +47,7 @@ const protect = async (req, res, next) => {
     }
 
     req.user = user;
-    next();
+    return next();
   } catch (error) {
     return res.status(401).json({
       success: false,

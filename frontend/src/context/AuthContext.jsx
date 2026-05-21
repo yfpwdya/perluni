@@ -17,19 +17,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   async function checkAuth() {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await authAPI.getMe();
       setUser(response.data?.data?.user || null);
     } catch {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
       setUser(null);
     } finally {
       setLoading(false);
@@ -44,12 +35,7 @@ export const AuthProvider = ({ children }) => {
     const response = await authAPI.login({ email, password });
     const payload = response.data?.data;
 
-    if (payload?.token) {
-      localStorage.setItem('token', payload.token);
-    }
-
     if (payload?.user) {
-      localStorage.setItem('user', JSON.stringify(payload.user));
       setUser(payload.user);
     }
 
@@ -61,10 +47,14 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch {
+      // no-op
+    } finally {
+      setUser(null);
+    }
   };
 
   const value = {

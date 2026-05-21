@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFileText, FiMessageSquare, FiShield, FiUsers } from 'react-icons/fi';
 import { articlesAPI, authAPI, feedbackAPI } from '../services/api';
+import AdminTabs from '../components/AdminTabs';
 
 const fallbackStats = {
   feedbackTotal: 0,
@@ -88,6 +89,8 @@ const AdminDashboard = () => {
         </p>
       </section>
 
+      <AdminTabs />
+
       <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((item) => (
           <article key={item.title} className="card p-4 border-brand-100/70">
@@ -101,7 +104,7 @@ const AdminDashboard = () => {
         ))}
       </section>
 
-      <section className="mt-5 grid gap-4 md:grid-cols-3">
+      <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Link to="/admin/feedback" className="card p-5 hover:border-brand-200 transition-colors">
           <p className="text-xs uppercase tracking-wide text-slate-500">Modul</p>
           <p className="text-lg font-semibold mt-2 text-slate-900">Manajemen Feedback</p>
@@ -112,6 +115,12 @@ const AdminDashboard = () => {
           <p className="text-xs uppercase tracking-wide text-slate-500">Modul</p>
           <p className="text-lg font-semibold mt-2 text-slate-900">Manajemen Publikasi</p>
           <p className="text-sm text-slate-600 mt-2">Tambah, edit, dan hapus artikel publikasi organisasi.</p>
+        </Link>
+
+        <Link to="/admin/members" className="card p-5 hover:border-brand-200 transition-colors">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Modul</p>
+          <p className="text-lg font-semibold mt-2 text-slate-900">Manajemen Data Anggota</p>
+          <p className="text-sm text-slate-600 mt-2">Tambah/edit/nonaktifkan member dengan jejak audit perubahan.</p>
         </Link>
 
         <Link to="/admin/users" className="card p-5 hover:border-brand-200 transition-colors">

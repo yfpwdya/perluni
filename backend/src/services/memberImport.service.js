@@ -59,8 +59,27 @@ const transformRow = (row, category, sourceSheet) => {
   };
 };
 
+const ensureSafeExcelSource = () => {
+  const ext = path.extname(EXCEL_FILE_PATH).toLowerCase();
+  if (!['.xlsx', '.xls'].includes(ext)) {
+    throw new Error('Invalid excel source extension. Only .xlsx/.xls are allowed');
+  }
+
+  const stats = fs.statSync(EXCEL_FILE_PATH);
+  const maxSizeBytes = Number(process.env.MAX_SENSUS_FILE_SIZE_MB || 15) * 1024 * 1024;
+  if (stats.size > maxSizeBytes) {
+    throw new Error(`Excel source exceeds allowed size (${maxSizeBytes} bytes)`);
+  }
+};
+
 const parseWorkbookMembers = () => {
-  const workbook = xlsx.readFile(EXCEL_FILE_PATH);
+  ensureSafeExcelSource();
+  const workbook = xlsx.readFile(EXCEL_FILE_PATH, {
+    dense: true,
+    cellFormula: false,
+    cellHTML: false,
+    cellText: true,
+  });
   const rows = [];
 
   workbook.SheetNames.forEach((sheetName) => {
@@ -78,6 +97,16 @@ const parseWorkbookMembers = () => {
 };
 
 const seedMembersFromExcelIfEmpty = async () => {
+  const importEnabled =
+    process.env.ENABLE_MEMBER_EXCEL_IMPORT !== undefined
+      ? process.env.ENABLE_MEMBER_EXCEL_IMPORT === 'true'
+      : process.env.NODE_ENV !== 'production';
+
+  if (!importEnabled) {
+    console.log('ℹ️  Excel import disabled by config (ENABLE_MEMBER_EXCEL_IMPORT=false)');
+    return;
+  }
+
   const existingCount = await Member.count();
   if (existingCount > 0) {
     console.log(`ℹ️  Members table already populated (${existingCount} records)`);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FiEdit2, FiPlus, FiRefreshCcw, FiTrash2 } from 'react-icons/fi';
 import { articlesAPI } from '../services/api';
+import AdminTabs from '../components/AdminTabs';
 
 const categoryOptions = ['berita', 'pengumuman', 'kegiatan', 'artikel'];
 const statusOptions = ['all', 'published', 'draft'];
@@ -128,6 +129,8 @@ const AdminArticles = () => {
           Kelola artikel organisasi: tambah, edit, atur status draft/published, dan hapus konten.
         </p>
       </section>
+
+      <AdminTabs />
 
       <section className="card mt-5 p-5 border-brand-100/70">
         <div className="flex items-center justify-between gap-2 mb-3">

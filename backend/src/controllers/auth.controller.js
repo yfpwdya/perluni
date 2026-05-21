@@ -9,6 +9,14 @@ const generateToken = (id) =>
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
+});
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -170,6 +178,7 @@ const login = async (req, res) => {
     }
 
     const token = generateToken(user.id);
+    res.cookie('auth_token', token, getCookieOptions());
 
     return res.status(200).json({
       success: true,
@@ -181,7 +190,6 @@ const login = async (req, res) => {
           email: user.email,
           role: user.role,
         },
-        token,
       },
     });
   } catch (error) {
@@ -191,6 +199,20 @@ const login = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+const logout = async (req, res) => {
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    path: '/',
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Logout successful',
+  });
 };
 
 const getMe = async (req, res) => {
@@ -307,6 +329,7 @@ module.exports = {
   register,
   verifyEmail,
   login,
+  logout,
   getMe,
   getUsers,
   updateUserRole,

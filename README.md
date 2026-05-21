@@ -67,7 +67,12 @@ Perluni/
    JWT_EXPIRES_IN=7d
    ```
 
-5. Jalankan server:
+5. (Opsional tapi disarankan, sekali jalan) bersihkan duplicate constraint lama:
+   ```bash
+   npm run db:cleanup-constraints
+   ```
+
+6. Jalankan server:
    ```bash
    npm run dev
    ```
@@ -96,7 +101,8 @@ Frontend default ke API:
 
 ### Auth
 - `POST /api/auth/register`
-- `POST /api/auth/login`
+- `POST /api/auth/login` (set HttpOnly auth cookie)
+- `POST /api/auth/logout`
 - `POST /api/auth/verify-email/:token`
 - `GET /api/auth/me`
 - `GET /api/auth/users` (admin)
@@ -109,6 +115,11 @@ Frontend default ke API:
 - `GET /api/sensus/universities`
 - `GET /api/sensus/sheets`
 - `GET /api/sensus/sheet/:sheetName`
+- `GET /api/sensus/members` (admin, pagination/filter)
+- `POST /api/sensus/members` (admin)
+- `PATCH /api/sensus/members/:id` (admin)
+- `DELETE /api/sensus/members/:id` (admin, soft delete)
+- `GET /api/sensus/members/:id/audits` (admin)
 
 ### Artikel
 - `GET /api/articles`
@@ -134,6 +145,7 @@ Frontend default ke API:
 - `/admin/feedback` (dashboard admin feedback: ringkasan statistik + pencarian nama/email + review)
 - `/admin/publikasi` (manajemen publikasi: create/edit/delete + filter)
 - `/admin/users` (manajemen role user: promote/demote admin)
+- `/admin/members` (manajemen data anggota: create/edit/nonaktifkan + audit trail)
 
 ### Catatan UI
 - Asset visual lokal:
@@ -141,6 +153,18 @@ Frontend default ke API:
   - `foto cina.avif` difokuskan sebagai container foto anggota di halaman utama agar lebih relevan dengan scope organisasi.
 
 ---
+
+## Security Hardening (v2.1)
+
+Backend sekarang menambahkan:
+- `helmet` security headers
+- CORS allowlist (`ALLOWED_ORIGINS`)
+- rate limit global + auth endpoint
+- HPP protection (parameter pollution)
+- request sanitization dasar (anti script injection pattern)
+- validasi request (`express-validator`) di route utama
+
+> Catatan: proteksi absolut terhadap semua skenario WAF bypass tidak mungkin 100%. Tetap lakukan pentest berkala, patch dependency, dan review log.
 
 ## Catatan Migrasi
 

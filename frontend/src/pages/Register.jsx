@@ -138,8 +138,10 @@ const Register = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className="input-base pl-10 pr-10"
-                placeholder="Password (min. 6 karakter)"
-                minLength={6}
+                placeholder="Password (min. 8 karakter, ada huruf besar/kecil & angka)"
+                minLength={8}
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}"
+                title="Minimal 8 karakter dan mengandung huruf besar, huruf kecil, serta angka"
                 required
               />
               <button

@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 const navItems = [
   { label: 'Tentang', href: '/#tentang' },
   { label: 'Profil Organisasi', href: '/#profil-organisasi' },
+  { label: 'Publikasi', href: '/publikasi' },
   { label: 'Cari Anggota', href: '/#cari-anggota' },
   { label: 'Kontak', href: '/#kontak' },
 ];

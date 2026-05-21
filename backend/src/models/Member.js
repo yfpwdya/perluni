@@ -39,6 +39,10 @@ Member.init(
       type: DataTypes.INTEGER,
       allowNull: true,
       field: 'entry_year',
+      validate: {
+        min: 1950,
+        max: 2100,
+      },
     },
     duration: {
       type: DataTypes.TEXT,
@@ -84,6 +88,13 @@ Member.init(
       { fields: ['name'] },
       { fields: ['category'] },
       { fields: ['source_sheet'] },
+      { fields: ['is_active'] },
+      { fields: ['university'] },
+      { fields: ['major'] },
+      {
+        fields: ['category', 'is_active'],
+        name: 'members_category_active_idx',
+      },
       {
         unique: true,
         fields: ['name', 'university', 'entry_year', 'category', 'source_sheet'],

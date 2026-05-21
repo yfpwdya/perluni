@@ -5,6 +5,7 @@ const tabs = [
   { to: '/admin', label: 'Dashboard', icon: <FiGrid /> },
   { to: '/admin/feedback', label: 'Feedback', icon: <FiMessageSquare /> },
   { to: '/admin/publikasi', label: 'Publikasi', icon: <FiFileText /> },
+  { to: '/admin/members', label: 'Data Anggota', icon: <FiUsers /> },
   { to: '/admin/users', label: 'Role User', icon: <FiUsers /> },
 ];
 

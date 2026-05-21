@@ -1,5 +1,6 @@
 const { sequelize, Op, getLikeOperator } = require('../config/database');
-const { Member } = require('../models');
+const { Member, MemberAudit, User } = require('../models');
+const { logMemberAudit } = require('../services/memberAudit.service');
 
 const toResponseMember = (member) => ({
   id: member.id,
@@ -16,6 +17,9 @@ const toResponseMember = (member) => ({
   remarks: member.remarks,
   category: member.category,
   sheet: member.sourceSheet,
+  is_active: member.isActive,
+  created_at: member.createdAt,
+  updated_at: member.updatedAt,
 });
 
 const fieldMap = {
@@ -32,6 +36,53 @@ const fieldMap = {
   remarks: 'remarks',
   category: 'category',
   sheet: 'sourceSheet',
+};
+
+const normalizeNullableText = (value) => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+};
+
+const normalizeRequiredText = (value, fallback = '') => {
+  if (value === undefined || value === null) return fallback;
+  return String(value).trim();
+};
+
+const sanitizeMemberPayload = (body) => {
+  const payload = {
+    name: body.name === undefined ? undefined : normalizeRequiredText(body.name),
+    gender: normalizeNullableText(body.gender),
+    origin: normalizeNullableText(body.origin),
+    university: normalizeNullableText(body.university),
+    major: normalizeNullableText(body.major),
+    educationLevel:
+      body.educationLevel === undefined && body.education_level === undefined
+        ? undefined
+        : normalizeNullableText(body.educationLevel ?? body.education_level),
+    entryYear:
+      body.entryYear === undefined && body.entry_year === undefined
+        ? undefined
+        : Number(body.entryYear ?? body.entry_year) || null,
+    duration: normalizeNullableText(body.duration),
+    hospital: normalizeNullableText(body.hospital),
+    scholarshipType:
+      body.scholarshipType === undefined && body.scholarship_type === undefined
+        ? undefined
+        : normalizeNullableText(body.scholarshipType ?? body.scholarship_type),
+    remarks: normalizeNullableText(body.remarks),
+    category: body.category === undefined ? undefined : normalizeRequiredText(body.category),
+    sourceSheet:
+      body.sourceSheet === undefined && body.source_sheet === undefined
+        ? undefined
+        : normalizeRequiredText(body.sourceSheet ?? body.source_sheet, 'Manual Entry'),
+    isActive: body.isActive ?? body.is_active,
+  };
+
+  if (payload.isActive === undefined) delete payload.isActive;
+
+  return payload;
 };
 
 exports.getAllData = async (req, res) => {
@@ -171,9 +222,7 @@ exports.searchData = async (req, res) => {
 
     return res.json({
       success: true,
-      message: keyword
-        ? `Found ${results.length} results`
-        : `Showing ${results.length} members`,
+      message: keyword ? `Found ${results.length} results` : `Showing ${results.length} members`,
       query: keyword,
       category: category || 'all',
       count: results.length,
@@ -232,6 +281,7 @@ exports.getStats = async (_req, res) => {
         total_records: totalRecords,
         total_mahasiswa: totalMahasiswa,
         total_dokter: totalAlumni,
+        total_alumni: totalAlumni,
         total_universities: universities,
         gender_distribution: genderDistribution,
         entry_years: entryYears
@@ -278,6 +328,250 @@ exports.getUniversities = async (_req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get universities',
+      error: error.message,
+    });
+  }
+};
+
+exports.getMembersAdmin = async (req, res) => {
+  try {
+    const { search = '', category = 'all', status = 'all', page = 1, limit = 20 } = req.query;
+    const likeOp = getLikeOperator();
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const perPage = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+    const where = {};
+
+    if (category !== 'all') where.category = category;
+    if (status === 'active') where.isActive = true;
+    if (status === 'inactive') where.isActive = false;
+
+    const normalizedSearch = String(search || '').trim();
+    if (normalizedSearch) {
+      where[Op.or] = [
+        { name: { [likeOp]: `%${normalizedSearch}%` } },
+        { university: { [likeOp]: `%${normalizedSearch}%` } },
+        { major: { [likeOp]: `%${normalizedSearch}%` } },
+        { sourceSheet: { [likeOp]: `%${normalizedSearch}%` } },
+      ];
+    }
+
+    const { rows, count } = await Member.findAndCountAll({
+      where,
+      order: [
+        ['isActive', 'DESC'],
+        ['name', 'ASC'],
+      ],
+      offset: (currentPage - 1) * perPage,
+      limit: perPage,
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        members: rows.map(toResponseMember),
+        pagination: {
+          page: currentPage,
+          limit: perPage,
+          total: count,
+          pages: Math.max(Math.ceil(count / perPage), 1),
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch members',
+      error: error.message,
+    });
+  }
+};
+
+exports.createMember = async (req, res) => {
+  try {
+    const payload = sanitizeMemberPayload(req.body);
+
+    const member = await Member.create({
+      ...payload,
+      isActive: payload.isActive ?? true,
+    });
+
+    await logMemberAudit({
+      action: 'create',
+      memberBefore: null,
+      memberAfter: member,
+      actorId: req.user?.id,
+      req,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Member created successfully',
+      data: { member: toResponseMember(member) },
+    });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({
+        success: false,
+        message: 'Member with similar identity already exists',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create member',
+      error: error.message,
+    });
+  }
+};
+
+exports.updateMember = async (req, res) => {
+  try {
+    const member = await Member.findByPk(req.params.id);
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: 'Member not found',
+      });
+    }
+
+    const payload = sanitizeMemberPayload(req.body);
+    const beforeSnapshot = { ...member.toJSON() };
+
+    const updatableFields = [
+      'name',
+      'gender',
+      'origin',
+      'university',
+      'major',
+      'educationLevel',
+      'entryYear',
+      'duration',
+      'hospital',
+      'scholarshipType',
+      'remarks',
+      'category',
+      'sourceSheet',
+      'isActive',
+    ];
+
+    updatableFields.forEach((field) => {
+      if (payload[field] !== undefined) {
+        member[field] = payload[field];
+      }
+    });
+
+    await member.save();
+
+    await logMemberAudit({
+      action: 'update',
+      memberBefore: beforeSnapshot,
+      memberAfter: member,
+      actorId: req.user?.id,
+      req,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Member updated successfully',
+      data: { member: toResponseMember(member) },
+    });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({
+        success: false,
+        message: 'Member with similar identity already exists',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update member',
+      error: error.message,
+    });
+  }
+};
+
+exports.deactivateMember = async (req, res) => {
+  try {
+    const member = await Member.findByPk(req.params.id);
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: 'Member not found',
+      });
+    }
+
+    if (!member.isActive) {
+      return res.status(200).json({
+        success: true,
+        message: 'Member already inactive',
+        data: { member: toResponseMember(member) },
+      });
+    }
+
+    member.isActive = false;
+    await member.save();
+
+    await logMemberAudit({
+      action: 'deactivate',
+      memberBefore: { ...member.toJSON(), isActive: true },
+      memberAfter: member,
+      actorId: req.user?.id,
+      req,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Member deactivated successfully',
+      data: { member: toResponseMember(member) },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to deactivate member',
+      error: error.message,
+    });
+  }
+};
+
+exports.getMemberAudits = async (req, res) => {
+  try {
+    const member = await Member.findByPk(req.params.id);
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: 'Member not found',
+      });
+    }
+
+    const audits = await MemberAudit.findAll({
+      where: { memberId: member.id },
+      include: [
+        {
+          model: User,
+          as: 'actor',
+          attributes: ['id', 'name', 'email', 'role'],
+          required: false,
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 100,
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        member: toResponseMember(member),
+        audits,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch member audits',
       error: error.message,
     });
   }

@@ -4,33 +4,18 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
-
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
+    // Jangan paksa redirect global ke /login.
+    // Public page harus tetap bisa diakses tanpa autentikasi.
+    // Redirect auth ditangani spesifik di protected route (AdminRoute).
     return Promise.reject(error);
   },
 );
@@ -40,6 +25,7 @@ export default api;
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
   verifyEmail: (token) => api.post(`/auth/verify-email/${token}`),
   getUsers: () => api.get('/auth/users'),
@@ -65,11 +51,17 @@ export const sensusAPI = {
   getUniversities: () => api.get('/sensus/universities'),
   getSheets: () => api.get('/sensus/sheets'),
   getAllData: () => api.get('/sensus'),
-  search: (query, category = 'all') =>
+  search: (query, category = 'all', field = 'all') =>
     api.get('/sensus/search', {
       params: {
         query,
         ...(category && category !== 'all' ? { category } : {}),
+        ...(field && field !== 'all' ? { field } : {}),
       },
     }),
+  getMembersAdmin: (params) => api.get('/sensus/members', { params }),
+  createMember: (data) => api.post('/sensus/members', data),
+  updateMember: (id, data) => api.patch(`/sensus/members/${id}`, data),
+  deactivateMember: (id) => api.delete(`/sensus/members/${id}`),
+  getMemberAudits: (id) => api.get(`/sensus/members/${id}/audits`),
 };
