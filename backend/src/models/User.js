@@ -77,6 +77,53 @@ User.init(
       allowNull: true,
       defaultValue: null,
     },
+    gender: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+      defaultValue: null,
+    },
+    origin: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    university: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    major: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    educationLevel: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: null,
+      field: 'education_level',
+    },
+    entryYear: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+      field: 'entry_year',
+      validate: {
+        min: 1950,
+        max: 2100,
+      },
+    },
+    duration: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: null,
+    },
+    scholarshipType: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: null,
+      field: 'scholarship_type',
+    },
   },
   {
     sequelize,

@@ -162,8 +162,37 @@ const markFeedbackReviewed = async (req, res) => {
   }
 };
 
+const deleteFeedback = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const feedback = await Feedback.findByPk(id);
+
+    if (!feedback) {
+      return res.status(404).json({
+        success: false,
+        message: 'Feedback tidak ditemukan',
+      });
+    }
+
+    await feedback.destroy();
+
+    res.json({
+      success: true,
+      message: 'Feedback berhasil dihapus',
+    });
+  } catch (error) {
+    console.error('Delete Feedback Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan pada server saat menghapus feedback',
+    });
+  }
+};
+
 module.exports = {
   createFeedback,
   getFeedbacks,
   markFeedbackReviewed,
+  deleteFeedback,
 };

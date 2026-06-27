@@ -5,6 +5,8 @@ const {
   login,
   logout,
   getMe,
+  updateProfile,
+  changePassword,
   verifyEmail,
   getUsers,
   updateUserRole,
@@ -24,8 +26,11 @@ router.post('/login', authLimiter, loginValidation, validateRequest, login);
 router.post('/verify-email/:token', verifyEmailValidation, validateRequest, verifyEmail);
 router.post('/logout', protect, logout);
 router.get('/me', protect, getMe);
+router.patch('/me', protect, updateProfile);
+router.patch('/me/password', protect, changePassword);
 
 router.get('/users', protect, authorize('admin'), getUsers);
 router.patch('/users/:id/role', protect, authorize('admin'), updateRoleValidation, validateRequest, updateUserRole);
 
 module.exports = router;
+

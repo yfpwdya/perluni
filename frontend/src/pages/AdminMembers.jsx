@@ -156,9 +156,9 @@ const AdminMembers = () => {
 
       <AdminTabs />
 
-      <section className="card mt-5 p-5 border-brand-100/70">
+      <section className="card mt-5 p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">{editingId ? 'Edit Member' : 'Tambah Member Baru'}</h2>
+          <h2 className="text-lg font-semibold text-white">{editingId ? 'Edit Member' : 'Tambah Member Baru'}</h2>
           {editingId && (
             <button type="button" className="btn btn-secondary text-sm" onClick={resetForm}>
               <FiX /> Batal Edit
@@ -193,7 +193,7 @@ const AdminMembers = () => {
         </form>
       </section>
 
-      <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
+      <section className="card mt-5 p-4 md:p-5">
         <div className="grid md:grid-cols-[1fr_180px_180px_auto] gap-3">
           <input
             className="input-base"
@@ -222,7 +222,7 @@ const AdminMembers = () => {
         <p className="text-xs text-slate-500 mt-3">Total anggota (hasil filter): {pagination.total}</p>
       </section>
 
-      {error && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+      {error && <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
 
       <section className="mt-5 space-y-3">
         {loading ? (
@@ -234,12 +234,12 @@ const AdminMembers = () => {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="chip capitalize">{item.category}</span>
-                    <span className={`chip ${item.is_active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                    <span className={`chip ${item.is_active ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
                       {item.is_active ? 'aktif' : 'nonaktif'}
                     </span>
                   </div>
-                  <p className="text-base font-semibold mt-2">{item.name}</p>
-                  <p className="text-sm text-slate-600 mt-1">{item.university || '-'} • {item.major || '-'}</p>
+                  <p className="text-base font-semibold text-white mt-2">{item.name}</p>
+                  <p className="text-sm text-slate-400 mt-1">{item.university || '-'} • {item.major || '-'}</p>
                   <p className="text-xs text-slate-400 mt-1">{item.sheet || 'Manual Entry'}</p>
                 </div>
 
@@ -265,10 +265,10 @@ const AdminMembers = () => {
       </section>
 
       {selectedAuditMember && (
-        <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
+        <section className="card mt-5 p-4 md:p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold">Audit Trail: {selectedAuditMember.name}</h3>
+              <h3 className="text-base font-semibold text-white">Audit Trail: {selectedAuditMember.name}</h3>
               <p className="text-xs text-slate-500 mt-1">Menampilkan histori create/update/deactivate data anggota.</p>
             </div>
             <button
@@ -288,13 +288,13 @@ const AdminMembers = () => {
               <p className="text-sm text-slate-500">Memuat audit trail...</p>
             ) : auditRows.length > 0 ? (
               auditRows.map((audit) => (
-                <article key={audit.id} className="rounded-xl border border-slate-200 p-3">
+                <article key={audit.id} className="rounded-xl border border-slate-700 bg-slate-800/50 p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="chip capitalize">{audit.action}</span>
                     <span className="text-xs text-slate-500">{new Date(audit.createdAt).toLocaleString('id-ID')}</span>
                     <span className="text-xs text-slate-500">oleh {audit.actor?.name || 'System'}</span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-2">Changed fields: {(audit.changedFields || []).join(', ') || '-'}</p>
+                  <p className="text-xs text-slate-400 mt-2">Changed fields: {(audit.changedFields || []).join(', ') || '-'}</p>
                 </article>
               ))
             ) : (
@@ -305,7 +305,7 @@ const AdminMembers = () => {
       )}
 
       <section className="mt-5 flex items-center justify-between">
-        <p className="text-sm text-slate-600">Halaman {pagination.page} dari {totalPages}</p>
+        <p className="text-sm text-slate-400">Halaman {pagination.page} dari {totalPages}</p>
         <div className="flex gap-2">
           <button
             type="button"

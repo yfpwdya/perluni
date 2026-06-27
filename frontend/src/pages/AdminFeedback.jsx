@@ -144,15 +144,15 @@ const AdminFeedback = () => {
 
       <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {summaryCards.map((item) => (
-          <article key={item.label} className="card p-4 border-brand-100/70">
-            <p className="text-xs uppercase tracking-wide text-slate-500">{item.label}</p>
-            <p className="text-2xl font-semibold text-slate-900 mt-2">{item.value}</p>
+          <article key={item.label} className="card p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-400">{item.label}</p>
+            <p className="text-2xl font-semibold text-brand-300 mt-2">{item.value}</p>
             <p className="text-xs text-slate-500 mt-1">{item.helper}</p>
           </article>
         ))}
       </section>
 
-      <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
+      <section className="card mt-5 p-4 md:p-5">
         <div className="grid md:grid-cols-[1fr_auto] gap-3 md:items-center">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -184,8 +184,8 @@ const AdminFeedback = () => {
               }}
               className={`px-3 py-2 text-xs md:text-sm rounded-lg border transition-colors ${
                 status === option.value
-                  ? 'bg-brand-600 text-white border-brand-600'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  ? 'bg-brand-gradient text-white border-brand-300/40 shadow-glow'
+                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-white'
               }`}
             >
               {option.label}
@@ -200,7 +200,7 @@ const AdminFeedback = () => {
       </section>
 
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
           {error}
         </div>
       )}
@@ -217,12 +217,12 @@ const AdminFeedback = () => {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`chip ${isReviewed ? 'bg-green-50 text-green-700' : ''}`}>
+                      <span className={`chip ${isReviewed ? 'bg-green-500/10 text-green-400 border-green-500/20' : ''}`}>
                         {isReviewed ? 'Sudah Direview' : 'Baru'}
                       </span>
 
                       {item.sourcePage && (
-                        <span className="chip bg-slate-100 text-slate-600">
+                        <span className="chip bg-slate-700 text-slate-300 border-slate-600">
                           <FiShield className="text-xs" /> {item.sourcePage}
                         </span>
                       )}
@@ -233,11 +233,11 @@ const AdminFeedback = () => {
                       </span>
                     </div>
 
-                    <p className="mt-3 text-sm font-medium text-slate-900 inline-flex items-center gap-2">
-                      <FiUser className="text-brand-600" /> {item.name}
+                    <p className="mt-3 text-sm font-medium text-white inline-flex items-center gap-2">
+                      <FiUser className="text-brand-300" /> {item.name}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">{item.email || 'Email tidak dicantumkan'}</p>
-                    <p className="text-sm text-slate-700 mt-3 whitespace-pre-wrap">{item.message}</p>
+                    <p className="text-xs text-slate-400 mt-1">{item.email || 'Email tidak dicantumkan'}</p>
+                    <p className="text-sm text-slate-300 mt-3 whitespace-pre-wrap">{item.message}</p>
                   </div>
 
                   <div className="md:w-52">
@@ -272,7 +272,7 @@ const AdminFeedback = () => {
       </section>
 
       <section className="mt-5 flex items-center justify-between">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-400">
           Halaman {pagination.page} dari {totalPages}
         </p>
 

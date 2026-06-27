@@ -26,6 +26,10 @@ Feedback.init(
         },
       },
     },
+    subject: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     message: {
       type: DataTypes.TEXT,
       allowNull: false,

@@ -30,7 +30,7 @@ const PublicationDetail = () => {
   if (loading) {
     return (
       <div className="container-app py-8">
-        <p className="text-sm text-slate-500">Memuat detail publikasi...</p>
+        <p className="text-sm text-slate-400">Memuat detail publikasi...</p>
       </div>
     );
   }
@@ -39,7 +39,7 @@ const PublicationDetail = () => {
     return (
       <div className="container-app py-8">
         <div className="card p-6">
-          <p className="text-slate-700">{error || 'Data publikasi tidak tersedia.'}</p>
+          <p className="text-slate-300">{error || 'Data publikasi tidak tersedia.'}</p>
           <Link to="/publikasi" className="btn btn-secondary mt-4">
             <FiArrowLeft /> Kembali ke Publikasi
           </Link>
@@ -67,18 +67,18 @@ const PublicationDetail = () => {
           </span>
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-semibold leading-snug">{article.title}</h1>
-        <p className="text-sm text-slate-500 mt-3">Ditulis oleh {article.author?.name || 'Admin Perluni'}</p>
+        <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">{article.title}</h1>
+        <p className="text-sm text-slate-400 mt-3">Ditulis oleh {article.author?.name || 'Admin Perluni'}</p>
 
         {article.coverImage && (
           <img
             src={article.coverImage}
             alt={article.title}
-            className="mt-5 rounded-2xl w-full max-h-[420px] object-cover border border-slate-200"
+            className="mt-5 rounded-2xl w-full max-h-[420px] object-cover border border-brand-300/20"
           />
         )}
 
-        <div className="max-w-none mt-6 whitespace-pre-line text-slate-700 leading-relaxed text-sm md:text-base">
+        <div className="max-w-none mt-6 whitespace-pre-line text-slate-300 leading-relaxed text-sm md:text-base">
           {article.content}
         </div>
       </article>

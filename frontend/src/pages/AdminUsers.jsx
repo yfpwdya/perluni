@@ -70,7 +70,7 @@ const AdminUsers = () => {
 
       <AdminTabs />
 
-      <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
+      <section className="card mt-5 p-4 md:p-5">
         <div className="grid md:grid-cols-[1fr_auto] gap-3">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -89,7 +89,7 @@ const AdminUsers = () => {
       </section>
 
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>
       )}
 
       <section className="mt-5 space-y-3">
@@ -104,8 +104,8 @@ const AdminUsers = () => {
               <article key={item.id} className="card p-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900 inline-flex items-center gap-2">
-                      <FiUserCheck className="text-brand-600" /> {item.name}
+                    <p className="text-sm font-semibold text-white inline-flex items-center gap-2">
+                      <FiUserCheck className="text-brand-300" /> {item.name}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">{item.email}</p>
                     <p className="text-xs text-slate-400 mt-1">

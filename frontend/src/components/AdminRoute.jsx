@@ -7,7 +7,7 @@ const AdminRoute = ({ children }) => {
   if (loading) {
     return (
       <div className="container-app py-10">
-        <p className="text-sm text-slate-500">Memuat otorisasi...</p>
+        <p className="text-sm text-slate-400">Memuat otorisasi...</p>
       </div>
     );
   }

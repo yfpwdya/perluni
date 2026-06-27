@@ -11,7 +11,7 @@ const tabs = [
 
 const AdminTabs = () => {
   return (
-    <nav className="mt-5 rounded-2xl border border-slate-200 bg-white p-2 overflow-x-auto">
+    <nav className="mt-5 rounded-2xl border border-brand-300/20 bg-[#1c1c1c] p-2 overflow-x-auto">
       <div className="flex min-w-max gap-2">
         {tabs.map((tab) => (
           <NavLink
@@ -21,8 +21,8 @@ const AdminTabs = () => {
             className={({ isActive }) =>
               `inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-brand-300 text-slate-900'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-brand-gradient text-white shadow-glow'
+                  : 'text-[#a0a0a0] hover:bg-[#2c2c2c] hover:text-white'
               }`
             }
           >

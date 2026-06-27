@@ -14,6 +14,15 @@ const registerValidation = [
     .withMessage('Password must be 8-128 characters')
     .matches(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Password must include uppercase, lowercase, and number'),
+  body('gender').optional({ values: 'falsy' }).isString().withMessage('Gender must be text'),
+  body('origin').optional({ values: 'falsy' }).isString().withMessage('Origin must be text'),
+  body('university').optional({ values: 'falsy' }).isString().withMessage('University must be text'),
+  body('major').optional({ values: 'falsy' }).isString().withMessage('Major must be text'),
+  body('educationLevel').optional({ values: 'falsy' }).isString().withMessage('Education level must be text'),
+  body('entryYear').optional({ values: 'falsy' }).isInt({ min: 1950, max: 2100 }).withMessage('Entry year must be between 1950-2100'),
+  body('duration').optional({ values: 'falsy' }).isString().withMessage('Duration must be text'),
+  body('scholarshipType').optional({ values: 'falsy' }).isString().withMessage('Scholarship type must be text'),
+  body('memberId').optional({ values: 'falsy' }).isInt().withMessage('Member ID must be an integer'),
 ];
 
 const loginValidation = [

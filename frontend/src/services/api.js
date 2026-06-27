@@ -27,6 +27,8 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
+  updateProfile: (data) => api.patch('/auth/me', data),
+  changePassword: (data) => api.patch('/auth/me/password', data),
   verifyEmail: (token) => api.post(`/auth/verify-email/${token}`),
   getUsers: () => api.get('/auth/users'),
   updateUserRole: (id, role) => api.patch(`/auth/users/${id}/role`, { role }),
@@ -44,6 +46,7 @@ export const feedbackAPI = {
   create: (data) => api.post('/feedback', data),
   getAll: (params) => api.get('/feedback', { params }),
   markReviewed: (id) => api.patch(`/feedback/${id}/review`),
+  delete: (id) => api.delete(`/feedback/${id}`),
 };
 
 export const sensusAPI = {
@@ -64,4 +67,11 @@ export const sensusAPI = {
   updateMember: (id, data) => api.patch(`/sensus/members/${id}`, data),
   deactivateMember: (id) => api.delete(`/sensus/members/${id}`),
   getMemberAudits: (id) => api.get(`/sensus/members/${id}/audits`),
+};
+
+export const contactAPI = {
+  send: (data) => api.post('/contact', data),
+  getAll: (params) => api.get('/contact', { params }),
+  markRead: (id) => api.patch(`/contact/${id}/read`),
+  delete: (id) => api.delete(`/contact/${id}`),
 };

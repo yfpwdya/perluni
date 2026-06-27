@@ -6,6 +6,7 @@ const routes = require('./src/routes');
 const { connectDB, getDbMeta } = require('./src/config/database');
 const { syncModels } = require('./src/models');
 const { seedMembersFromExcelIfEmpty } = require('./src/services/memberImport.service');
+const { syncUsersToMembers } = require('./src/services/memberSync.service');
 const {
   globalLimiter,
   securityHeaders,
@@ -47,7 +48,7 @@ app.get('/', (_req, res) => {
   res.json({
     success: true,
     message: 'Welcome to Perluni API',
-    version: '2.1.0',
+    version: '2.2.0',
     documentation: '/api/health',
     database: getDbMeta(),
   });
@@ -82,6 +83,7 @@ const startServer = async () => {
   await connectDB();
   await syncModels();
   await seedMembersFromExcelIfEmpty();
+  await syncUsersToMembers();
 
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);

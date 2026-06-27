@@ -5,16 +5,16 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#eef7ff',
-          100: '#d9ecff',
-          200: '#bcddff',
-          300: '#91c7ff',
-          400: '#60abff',
-          500: '#3c8df4',
-          600: '#1f76de',
-          700: '#1c62c4',
-          800: '#1d539f',
-          900: '#1d4882',
+          50: '#FDFBF7',
+          100: '#F7F2E6',
+          200: '#EEDFB8',
+          300: '#C9A84C', // emas utama
+          400: '#B5903E',
+          500: '#A07830', // emas gelap
+          600: '#8A6326',
+          700: '#6C4A1C',
+          800: '#4F3514',
+          900: '#38250E',
         },
       },
       fontFamily: {
@@ -22,10 +22,11 @@ export default {
         display: ['Poppins', 'sans-serif'],
       },
       boxShadow: {
-        soft: '0 18px 40px rgba(31, 118, 222, 0.12)',
+        soft: '0 18px 40px rgba(201, 168, 76, 0.12)',
+        glow: '0 0 15px rgba(201, 168, 76, 0.3)',
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #1f76de 0%, #3c8df4 56%, #6cb6ff 100%)',
+        'brand-gradient': 'linear-gradient(135deg, #C9A84C 0%, #A07830 100%)',
       },
     },
   },

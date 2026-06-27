@@ -2,6 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import MainLayout from './layouts/MainLayout';
 import Sensus from './pages/Sensus';
+import Tentang from './pages/Tentang';
+import ProfilOrganisasi from './pages/ProfilOrganisasi';
+import Kontak from './pages/Kontak';
+import ProfilSaya from './pages/ProfilSaya';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
@@ -13,6 +17,7 @@ import AdminArticles from './pages/AdminArticles';
 import AdminUsers from './pages/AdminUsers';
 import AdminMembers from './pages/AdminMembers';
 import AdminRoute from './components/AdminRoute';
+import Feedback from './pages/Feedback';
 
 function App() {
   return (
@@ -26,9 +31,15 @@ function App() {
 
           {/* Main page with layout */}
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Sensus />} />
+            <Route path="/" element={<Tentang />} />
+            <Route path="/tentang" element={<Tentang />} />
+            <Route path="/profil-organisasi" element={<ProfilOrganisasi />} />
+            <Route path="/kontak" element={<Kontak />} />
+            <Route path="/cari-anggota" element={<Sensus />} />
+            <Route path="/profil" element={<ProfilSaya />} />
             <Route path="/publikasi" element={<Publications />} />
             <Route path="/publikasi/:id" element={<PublicationDetail />} />
+            <Route path="/feedback" element={<Feedback />} />
             <Route
               path="/admin"
               element={(

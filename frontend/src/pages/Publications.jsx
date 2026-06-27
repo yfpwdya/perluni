@@ -81,7 +81,7 @@ const Publications = () => {
         </div>
       </section>
 
-      <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
+      <section className="card mt-5 p-4 md:p-5">
         <div className="grid md:grid-cols-[1fr_220px] gap-3">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -124,11 +124,11 @@ const Publications = () => {
             <article key={item.id} className="card p-5 flex flex-col hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center justify-between gap-2">
                 <span className="chip capitalize">{item.category || 'publikasi'}</span>
-                <FiFileText className="text-brand-600" />
+                <FiFileText className="text-brand-300" />
               </div>
 
-              <h3 className="text-base font-semibold text-slate-900 mt-3 line-clamp-2">{item.title}</h3>
-              <p className="text-sm text-slate-600 mt-2 line-clamp-3 flex-1">{item.excerpt || 'Tidak ada ringkasan.'}</p>
+              <h3 className="text-base font-semibold text-white mt-3 line-clamp-2">{item.title}</h3>
+              <p className="text-sm text-slate-400 mt-2 line-clamp-3 flex-1">{item.excerpt || 'Tidak ada ringkasan.'}</p>
 
               <p className="text-xs text-slate-400 mt-4">
                 {new Date(item.createdAt).toLocaleDateString('id-ID', {
@@ -155,7 +155,7 @@ const Publications = () => {
       </section>
 
       <section className="mt-5 flex items-center justify-between">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-400">
           Halaman {pagination.page} dari {pagination.pages}
         </p>
 

@@ -132,9 +132,9 @@ const AdminArticles = () => {
 
       <AdminTabs />
 
-      <section className="card mt-5 p-5 border-brand-100/70">
+      <section className="card mt-5 p-5">
         <div className="flex items-center justify-between gap-2 mb-3">
-          <h2 className="text-lg font-semibold">{editingId ? 'Edit Publikasi' : 'Tambah Publikasi Baru'}</h2>
+          <h2 className="text-lg font-semibold text-white">{editingId ? 'Edit Publikasi' : 'Tambah Publikasi Baru'}</h2>
           {editingId && (
             <button type="button" className="btn btn-secondary text-sm" onClick={resetForm}>
               Batal Edit
@@ -209,7 +209,7 @@ const AdminArticles = () => {
         </form>
       </section>
 
-      <section className="card mt-5 p-4 md:p-5 border-brand-100/70">
+      <section className="card mt-5 p-4 md:p-5">
         <div className="grid md:grid-cols-[1fr_180px_auto] gap-3">
           <input
             className="input-base"
@@ -245,7 +245,7 @@ const AdminArticles = () => {
       </section>
 
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>
       )}
 
       <section className="mt-5 space-y-3">
@@ -258,12 +258,12 @@ const AdminArticles = () => {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="chip capitalize">{item.category}</span>
-                    <span className={`chip ${item.status === 'published' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                    <span className={`chip ${item.status === 'published' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-brand-300/10 text-brand-300 border-brand-300/20'}`}>
                       {item.status}
                     </span>
                   </div>
-                  <h3 className="text-base font-semibold mt-2">{item.title}</h3>
-                  <p className="text-sm text-slate-600 mt-1 line-clamp-2">{item.excerpt || 'Tanpa ringkasan'}</p>
+                  <h3 className="text-base font-semibold text-white mt-2">{item.title}</h3>
+                  <p className="text-sm text-slate-400 mt-1 line-clamp-2">{item.excerpt || 'Tanpa ringkasan'}</p>
                 </div>
 
                 <div className="flex gap-2 shrink-0">
@@ -283,7 +283,7 @@ const AdminArticles = () => {
       </section>
 
       <section className="mt-5 flex items-center justify-between">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-400">
           Halaman {pagination.page} dari {totalPages}
         </p>
 

@@ -4,8 +4,10 @@ const {
   createFeedback,
   getFeedbacks,
   markFeedbackReviewed,
+  deleteFeedback,
 } = require('../controllers/feedback.controller');
-const { optionalProtect, protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
+const { contactRateLimiter } = require('../middleware/rateLimiter');
 const { validateRequest } = require('../middleware/validation');
 const {
   createFeedbackValidation,
@@ -13,8 +15,9 @@ const {
   reviewFeedbackValidation,
 } = require('../validators/feedback.validators');
 
-router.post('/', optionalProtect, createFeedbackValidation, validateRequest, createFeedback);
+router.post('/', protect, contactRateLimiter, createFeedbackValidation, validateRequest, createFeedback);
 router.get('/', protect, authorize('admin'), listFeedbackValidation, validateRequest, getFeedbacks);
 router.patch('/:id/review', protect, authorize('admin'), reviewFeedbackValidation, validateRequest, markFeedbackReviewed);
+router.delete('/:id', protect, authorize('admin'), reviewFeedbackValidation, validateRequest, deleteFeedback);
 
 module.exports = router;

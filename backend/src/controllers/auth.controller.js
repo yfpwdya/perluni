@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { Op } = require('../config/database');
-const { User } = require('../models');
+const { User, Member } = require('../models');
 const sendEmail = require('../utils/sendEmail');
 
 const generateToken = (id) =>
@@ -19,7 +19,7 @@ const getCookieOptions = () => ({
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, gender, origin, university, major, educationLevel, entryYear, duration, scholarshipType, memberId } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -50,12 +50,72 @@ const register = async (req, res) => {
       name,
       email: normalizedEmail,
       password,
+      gender: gender || null,
+      origin: origin || null,
+      university: university || null,
+      major: major || null,
+      educationLevel: educationLevel || null,
+      entryYear: entryYear ? parseInt(entryYear, 10) : null,
+      duration: duration || null,
+      scholarshipType: scholarshipType || null,
       isVerified: !shouldSendVerification,
       verificationToken: shouldSendVerification ? hashedVerificationToken : null,
       verificationTokenExpire: shouldSendVerification
         ? new Date(Date.now() + 24 * 60 * 60 * 1000)
         : null,
     });
+
+    // Sync to Member table so they are searchable in Sensus (Cari Data Anggota)
+    try {
+      let memberToSync = null;
+
+      if (memberId) {
+        memberToSync = await Member.findByPk(memberId);
+      }
+
+      if (!memberToSync) {
+        // Fallback: search by name, university, and entryYear
+        memberToSync = await Member.findOne({
+          where: {
+            name: name,
+            university: university || null,
+            entryYear: entryYear ? parseInt(entryYear, 10) : null,
+          },
+        });
+      }
+
+      if (memberToSync) {
+        // Update existing member details
+        memberToSync.gender = gender || memberToSync.gender;
+        memberToSync.origin = origin || memberToSync.origin;
+        memberToSync.university = university || memberToSync.university;
+        memberToSync.major = major || memberToSync.major;
+        memberToSync.educationLevel = educationLevel || memberToSync.educationLevel;
+        memberToSync.entryYear = entryYear ? parseInt(entryYear, 10) : memberToSync.entryYear;
+        memberToSync.duration = duration || memberToSync.duration;
+        memberToSync.scholarshipType = scholarshipType || memberToSync.scholarshipType;
+        memberToSync.isActive = true;
+        await memberToSync.save();
+      } else {
+        // Create new member record
+        await Member.create({
+          name,
+          gender: gender || null,
+          origin: origin || null,
+          university: university || null,
+          major: major || null,
+          educationLevel: educationLevel || null,
+          entryYear: entryYear ? parseInt(entryYear, 10) : null,
+          duration: duration || null,
+          scholarshipType: scholarshipType || null,
+          category: 'mahasiswa', // default category
+          sourceSheet: 'Portal Perluni', // indicates portal registration
+          isActive: true,
+        });
+      }
+    } catch (syncError) {
+      console.error('Failed to sync registered user to Member table:', syncError);
+    }
 
     if (shouldSendVerification) {
       const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${plainVerificationToken}`;
@@ -235,7 +295,17 @@ const getMe = async (req, res) => {
           email: user.email,
           role: user.role,
           avatar: user.avatar,
+          gender: user.gender,
+          origin: user.origin,
+          university: user.university,
+          major: user.major,
+          educationLevel: user.educationLevel,
+          entryYear: user.entryYear,
+          duration: user.duration,
+          scholarshipType: user.scholarshipType,
+          isVerified: user.isVerified,
           createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
       },
     });
@@ -245,6 +315,112 @@ const getMe = async (req, res) => {
       message: 'Failed to get user data',
       error: error.message,
     });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const { name, gender, origin, university, major, educationLevel, entryYear, duration, scholarshipType } = req.body;
+
+    const allowedFields = { name, gender, origin, university, major, educationLevel, entryYear, duration, scholarshipType };
+    Object.entries(allowedFields).forEach(([key, val]) => {
+      if (val !== undefined) {
+        if (key === 'entryYear') {
+          user[key] = val ? parseInt(val, 10) : null;
+        } else {
+          user[key] = val || null;
+        }
+      }
+    });
+
+    await user.save();
+
+    // Also sync changes to Member table if matched
+    try {
+      const { Member } = require('../models');
+      const member = await Member.findOne({ where: { name: user.name, isActive: true } });
+      if (member) {
+        if (gender !== undefined) member.gender = gender || member.gender;
+        if (origin !== undefined) member.origin = origin || member.origin;
+        if (university !== undefined) member.university = university || member.university;
+        if (major !== undefined) member.major = major || member.major;
+        if (educationLevel !== undefined) member.educationLevel = educationLevel || member.educationLevel;
+        if (entryYear !== undefined) member.entryYear = entryYear ? parseInt(entryYear, 10) : member.entryYear;
+        if (duration !== undefined) member.duration = duration || member.duration;
+        if (scholarshipType !== undefined) member.scholarshipType = scholarshipType || member.scholarshipType;
+        await member.save();
+      }
+    } catch (syncErr) {
+      console.error('Member sync on profile update failed:', syncErr);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profil berhasil diperbarui',
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          gender: user.gender,
+          origin: user.origin,
+          university: user.university,
+          major: user.major,
+          educationLevel: user.educationLevel,
+          entryYear: user.entryYear,
+          duration: user.duration,
+          scholarshipType: user.scholarshipType,
+          updatedAt: user.updatedAt,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({ success: false, message: 'Gagal memperbarui profil', error: error.message });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Password lama dan baru wajib diisi' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password baru minimal 8 karakter' });
+    }
+
+    const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword);
+    if (!passwordRegex) {
+      return res.status(400).json({ success: false, message: 'Password baru harus mengandung huruf besar, huruf kecil, dan angka' });
+    }
+
+    const user = await User.scope('withPassword').findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Password lama tidak sesuai' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'Password berhasil diperbarui' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    return res.status(500).json({ success: false, message: 'Gagal mengubah password', error: error.message });
   }
 };
 
@@ -331,6 +507,8 @@ module.exports = {
   login,
   logout,
   getMe,
+  updateProfile,
+  changePassword,
   getUsers,
   updateUserRole,
 };

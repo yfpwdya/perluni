@@ -3,6 +3,7 @@ const User = require('./User');
 const Article = require('./Article');
 const Member = require('./Member');
 const Feedback = require('./Feedback');
+const Contact = require('./Contact');
 const MemberAudit = require('./MemberAudit');
 
 User.hasMany(Article, {
@@ -60,5 +61,6 @@ module.exports = {
   Article,
   Member,
   Feedback,
+  Contact,
   MemberAudit,
 };
