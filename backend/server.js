@@ -23,6 +23,7 @@ const allowedOrigins = String(process.env.ALLOWED_ORIGINS || 'http://localhost:5
 
 app.set('trust proxy', 1);
 
+// --- Security & parsing middleware ---
 app.use(securityHeaders);
 app.use(globalLimiter);
 app.use(hppMiddleware);
@@ -42,6 +43,39 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use(sanitizeInput);
 
+// --- Vercel serverless: lazy DB initialization on first request ---
+let isInitialized = false;
+let initPromise = null;
+
+const initializeDB = async () => {
+  if (isInitialized) return;
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    await connectDB();
+    await syncModels();
+    // Skip heavy Excel imports on serverless cold starts
+    if (process.env.ENABLE_MEMBER_EXCEL_IMPORT === 'true') {
+      await seedMembersFromExcelIfEmpty();
+    }
+    await syncUsersToMembers();
+    isInitialized = true;
+  })();
+
+  return initPromise;
+};
+
+app.use(async (req, res, next) => {
+  try {
+    await initializeDB();
+    next();
+  } catch (error) {
+    console.error('❌ DB initialization failed:', error.message);
+    res.status(500).json({ success: false, message: 'Server initialization failed' });
+  }
+});
+
+// --- Routes (AFTER DB init middleware) ---
 app.use('/api', routes);
 
 app.get('/', (_req, res) => {
@@ -54,6 +88,7 @@ app.get('/', (_req, res) => {
   });
 });
 
+// --- 404 & error handlers ---
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -77,13 +112,11 @@ app.use((err, req, res, _next) => {
   });
 });
 
+// --- Local development: start with app.listen() ---
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
-  await syncModels();
-  await seedMembersFromExcelIfEmpty();
-  await syncUsersToMembers();
+  await initializeDB();
 
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
@@ -98,4 +131,7 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, startServer };
+// Default export for Vercel serverless (@vercel/node)
+module.exports = app;
+module.exports.app = app;
+module.exports.startServer = startServer;
