@@ -50,6 +50,7 @@ const globalLimiter = rateLimit({
   max: Number(process.env.RATE_LIMIT_MAX || 500),
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: {
     success: false,
     message: 'Too many requests, please try again later.',
@@ -61,6 +62,7 @@ const authLimiter = rateLimit({
   max: Number(process.env.AUTH_RATE_LIMIT_MAX || 10),
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: {
     success: false,
     message: 'Too many auth attempts, please try again later.',
