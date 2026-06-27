@@ -19,7 +19,7 @@ import {
   FiSearch,
 } from 'react-icons/fi';
 import { authAPI, sensusAPI } from '../services/api';
-// import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const Register = () => {
   const [step, setStep] = useState(1);
